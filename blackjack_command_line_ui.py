@@ -55,8 +55,8 @@ if __name__=="__main__":
 				deal = True
 			if deal == True:
 				game.deal_hand(bet)
-				print_dealer_hand(game, True)
 				print_player_hand(game)
+				print_dealer_hand(game, True)
 				if game.is_hand_over() == False:
 					while True:
 						prompt = "[ S)tand or H)it ] "
@@ -65,10 +65,22 @@ if __name__=="__main__":
 							break
 						if response == 'h' or response == 'H':
 							game.deal_card_to_player()
-							print_dealer_hand(game, True)
 							print_player_hand(game)
+							print_dealer_hand(game, True)
 							if game.is_hand_over() == True:
 								break
-				print_dealer_hand(game, False)
 				print_player_hand(game)
-				game.finish_hand(bet)
+				while True:
+					print_dealer_hand(game, False)
+					if game.is_hand_over(True):
+						break
+					game.deal_card_to_dealer()
+				result = game.finish_hand(bet)
+				if result == 2:
+					print("Blackjack! Player WINS!")
+				elif result == 1:
+					print("Player WINS!")
+				elif result == 0:
+					print("PUSH!")
+				elif result == -1:
+					print("Player LOSES!")

@@ -89,15 +89,50 @@ class BlackjackGame:
 		self.player_hand.append(self.deal_card())
 		self.dealer_hand.append(self.deal_card())
 	
-	def is_hand_over(self):
+	def is_hand_over(self, player_is_done = False):
 		if self.player_bust == True or self.dealer_bust == True:
 			return True
-		if self.calc_highest_total(self.dealer_hand) == 21 and len(self.dealer_hand) == 2 or self.calc_highest_total(self.player_hand) == 21 and len(self.player_hand) == 2:
-			return True
+		if player_is_done == True:
+			dealer_total = self.calc_highest_total(self.dealer_hand)
+			if dealer_total == 21 and len(self.dealer_hand) == 2 or self.calc_highest_total(self.player_hand) == 21 and len(self.player_hand) == 2:
+				return True
+			if dealer_total > 17:
+				return True
+			if dealer_total == 17 and self.rules.does_dealer_hits_on_soft_17() == False:
+				return True
 		return False
 	
 	def finish_hand(self, bet):
-		if self.player_bust == True:
-			 self.bankroll = self.bankroll - bet
-		elif self.dealer_bust == True:
-			 self.bankroll = self.bankroll + bet
+		player_won = 0
+		dealer_total = self.calc_highest_total(self.dealer_hand)
+		player_total = self.calc_highest_total(self.player_hand)
+		
+		# First, test for player blackjack
+		if player_total == 21 and len(self.player_hand) == 2:
+			self.bankroll = self.bankroll + bet * self.rules.get_blackjack_payout()
+			player_won = 2
+		else:
+			# Next, test for dealer blackjack
+			if dealer_total == 21 and len(self.dealer_hand) == 2:
+				player_won = -1
+			# Now, test for busts
+			elif self.player_bust == True:
+				player_won = -1
+			elif self.dealer_bust == True:
+				player_won = 1
+			else:
+				# Now, compare hands
+				if dealer_total == player_total:
+					if self.rules.does_push_goes_to_dealer() == True:
+			 			player_won = -1
+				elif dealer_total > player_total:
+		 			player_won = -1
+				else:
+		 			player_won = 1
+					
+			# Payout
+			if player_won == 1:
+				self.bankroll = self.bankroll + bet
+			if player_won == -1:
+				self.bankroll = self.bankroll - bet
+		return player_won
