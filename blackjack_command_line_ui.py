@@ -1,3 +1,5 @@
+from log_level import LogLevel
+from logging import Logging
 from blackjack_game import BlackjackGame
 
 def print_dealer_hand(game, hidden):
@@ -24,6 +26,8 @@ def print_player_hand(game):
 			print("Player hand: " + str(game.get_player_hand()) + " " + str(lowest_total) + " or " + str(highest_total))
 
 if __name__=="__main__":
+	log = Logging(LogLevel.INFO)
+	#log.log(LogLevel.INFO, "Test info")
 	minimum_bet = 1
 	maximum_bet = 100
 	game = BlackjackGame(1, 500)
