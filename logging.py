@@ -32,7 +32,11 @@ class Logging:
 				else:
 					log_level_text = "Finest: "
 				
-				print(log_level_text + text)
+				if isinstance(text, str):
+					print(log_level_text + text)
+				else:
+					print(log_level_text)
+					print(text)
 	
 	def severe(self, text):
 		self.log(LogLevel.SEVERE, text)

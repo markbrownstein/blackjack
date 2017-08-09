@@ -1,10 +1,12 @@
 from logging import *
 from shoe import Shoe
+from blackjack_rules import BlackjackRules
 
 class BlackjackGame:
 	def __init__(self, log, decks, bankroll):
 		self.log = log
 		self.shoe = Shoe(log, decks)
+		self.rules = BlackjackRules(log)
 		self.bankroll = bankroll
 		self.dealer_hand = []
 		self.player_hand = []
@@ -12,6 +14,9 @@ class BlackjackGame:
 		self.player_bust = False
 		self.need_to_shuffle = False
 		
+	def get_rules(self):
+		return self.rules
+	
 	def get_bankroll(self):
 		return self.bankroll
 	

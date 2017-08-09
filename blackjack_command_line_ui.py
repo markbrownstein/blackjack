@@ -1,4 +1,5 @@
 from logging import *
+from blackjack_rules import BlackjackRules
 from blackjack_game import BlackjackGame
 
 def print_dealer_hand(game, hidden):
@@ -26,6 +27,7 @@ def print_player_hand(game):
 
 if __name__=="__main__":
 	log = Logging(LogSource.PRINT, LogLevel.WARNING)
+	
 	minimum_bet = 1
 	maximum_bet = 100
 	game = BlackjackGame(log, 1, 500)
@@ -40,11 +42,11 @@ if __name__=="__main__":
 			deal = False
 			if response == 'n' or response == 'N':
 				while True:
-					prompt = "[ Enter new bet between $" + str(minimum_bet) + " and $" + str(maximum_bet) + "] "
+					prompt = "[ Enter new bet between $" + str(game.get_rules().get_minimum_bet()) + " and $" + str(game.get_rules().get_maximum_bet()) + "] "
 					response = input(prompt)
 					if response.isdigit():
 						num = int(response)
-						if num >= minimum_bet and num <= maximum_bet:
+						if num >= game.get_rules().get_minimum_bet() and num <= game.get_rules().get_maximum_bet():
 							bet = num
 							break
 					print("Error: Bad bet entered!")
