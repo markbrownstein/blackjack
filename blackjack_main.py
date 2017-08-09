@@ -2,6 +2,6 @@ from logging import *
 from blackjack_auto import BlackjackAutoGame
 
 if __name__=="__main__":
-	log = Logging(LogSource.PRINT, LogLevel.INFO)
+	log = Logging(LogSource.PRINT, LogLevel.WARNING)
 	auto = BlackjackAutoGame(log)
 	auto.run()

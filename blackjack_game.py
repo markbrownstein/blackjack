@@ -63,6 +63,10 @@ class BlackjackGame:
 		if card == "":
 			self.need_to_shuffle = True
 			card = self.shoe.deal()
+			if card == "":
+				self.log.warning("Shoe empty! Shuffling when not supposed to!")
+				self.shoe.shuffle()
+				card = self.shoe.deal()
 		return card
 			
 	def deal_card_to_dealer(self):
