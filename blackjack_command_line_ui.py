@@ -56,6 +56,7 @@ if __name__=="__main__":
 				game.deal_hand(bet)
 				print_player_hand(game)
 				print_dealer_hand(game, True)
+				# TODO: This is where insurance would go
 				if game.is_hand_over() == False:
 					while True:
 						commands = ["hit", "stand"]

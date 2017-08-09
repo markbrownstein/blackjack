@@ -96,10 +96,10 @@ class BlackjackGame:
 	def is_hand_over(self, player_is_done = False):
 		if self.player_bust == True or self.dealer_bust == True:
 			return True
+		dealer_total = self.calc_highest_total(self.dealer_hand)
+		if dealer_total == 21 and len(self.dealer_hand) == 2 or self.calc_highest_total(self.player_hand) == 21 and len(self.player_hand) == 2:
+			return True
 		if player_is_done == True:
-			dealer_total = self.calc_highest_total(self.dealer_hand)
-			if dealer_total == 21 and len(self.dealer_hand) == 2 or self.calc_highest_total(self.player_hand) == 21 and len(self.player_hand) == 2:
-				return True
 			if dealer_total > 17:
 				return True
 			if dealer_total == 17 and self.rules.does_dealer_hits_on_soft_17() == False:
