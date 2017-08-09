@@ -1,8 +1,10 @@
+from logging import *
 from shoe import Shoe
 
 class BlackjackGame:
-	def __init__(self, decks, bankroll):
-		self.shoe = Shoe(decks)
+	def __init__(self, log, decks, bankroll):
+		self.log = log
+		self.shoe = Shoe(log, decks)
 		self.bankroll = bankroll
 		self.dealer_hand = []
 		self.player_hand = []
@@ -35,7 +37,7 @@ class BlackjackGame:
 		aces = 0
 		for card in hand:
 			rank = self.calc_rank(card)
-			#print("card: " + card + ", rank: " + str(rank))
+			self.log.finest("card: " + card + ", rank: " + str(rank))
 			if rank == 1:
 				aces = aces + 1
 			total = total + rank

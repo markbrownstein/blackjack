@@ -1,10 +1,12 @@
 import random
+from logging import *
 
 class Shoe:
 	RANKS = [ 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K' ]
 	SUITS = [ 'C', 'D', 'H', 'S' ]
 
-	def __init__(self, decks):
+	def __init__(self, log, decks):
+		self.log = log
 		self.decks = decks
 		self.random_deck = []
 		self.red_card = 0
