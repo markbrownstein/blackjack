@@ -39,7 +39,7 @@ class BlackjackGame:
 			if rank == 1:
 				aces = aces + 1
 			total = total + rank
-		while total < 12 and aces > 0:
+		while total <= 11 and aces > 0:
 			total = total + 10
 			aces = aces - 1
 		return total
@@ -58,6 +58,16 @@ class BlackjackGame:
 			card = self.shoe.deal()
 		return card
 			
+	def deal_card_to_dealer(self):
+		self.dealer_hand.append(self.deal_card())
+		if self.calc_highest_total(self.dealer_hand) > 21:
+			self.dealer_bust = True
+				
+	def deal_card_to_player(self):
+		self.player_hand.append(self.deal_card())
+		if self.calc_highest_total(self.player_hand) > 21:
+			self.player_bust = True
+				
 	def deal_hand(self, bet):
 		if self.need_to_shuffle:
 			self.need_to_shuffle = False
@@ -72,8 +82,15 @@ class BlackjackGame:
 		self.player_hand.append(self.deal_card())
 		self.dealer_hand.append(self.deal_card())
 	
-	def finish_hand(self):
+	def is_hand_over(self):
+		if self.player_bust == True or self.dealer_bust == True:
+			return True
+		if self.calc_highest_total(self.dealer_hand) == 21 and len(self.dealer_hand) == 2 or self.calc_highest_total(self.player_hand) == 21 and len(self.player_hand) == 2:
+			return True
+		return False
+	
+	def finish_hand(self, bet):
 		if self.player_bust == True:
-			 self.bankroll = self.bankroll - self.bet
+			 self.bankroll = self.bankroll - bet
 		elif self.dealer_bust == True:
-			 self.bankroll = self.bankroll + self.bet
+			 self.bankroll = self.bankroll + bet
