@@ -2,7 +2,7 @@ from deck import Deck
 
 class Game:
 	def __init__(self, decks, bankroll):
-		self.deck = Deck(decks)
+		self.deck = Deck()
 		self.bankroll = bankroll
 		self.dealer_hand = []
 		self.player_hand = []
