@@ -27,7 +27,7 @@ def print_player_hand(game):
 
 if __name__=="__main__":
 	log = Logging(LogSource.PRINT, LogLevel.WARNING)
-	game = BlackjackGame(log, 1, 500)
+	game = BlackjackGame(log, 500)
 	bet = 5
 	while True:
 		print("Cash: $" + str(game.get_bankroll()) + ", Bet: $" + str(bet))

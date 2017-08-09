@@ -4,17 +4,21 @@ from blackjack_rules import BlackjackRules
 from blackjack_game import BlackjackGame
 
 class BlackjackAutoGame:
-	STANDARD = "standard"
+	STANDARD_STRATEGY = "standard_strategy"
+	
+	STANDARD_BETTING_STRATEGY = "standard_betting_strategy"
+	FIVE_FOLD_BETTING_STRATEGY = "five_fold_betting_strategy"
 	
 	def __init__(self, log):
 		self.log = log
-		self.number_of_games = 100
+		self.number_of_games = 1000
 		self.number_of_hands = 100
 		self.starting_bankroll = 500
-		self.starting_bet = 5
+		self.starting_bet = 1
 		self.strategy_filenames = { }
-		self.strategy_filenames[self.STANDARD] = "standard_strategy.csv"
+		self.strategy_filenames[self.STANDARD_STRATEGY] = "standard_strategy.csv"
 		self.strategies = { }
+		self.betting_strategy = self.STANDARD_BETTING_STRATEGY
 		self.ending_bankrolls = []
 		
 	def load_strategy(self, filename):
@@ -33,10 +37,9 @@ class BlackjackAutoGame:
 					strategy[key] = value
 		return strategy
 	
-	def run_hand(self, game, bet, hand_number):
+	def run_hand(self, game, strategy, bet, hand_number):
 		self.log.info("   Starting hand #" + str(hand_number) + ", bet: $" + str(bet) + " ...")
 		game.deal_hand(bet)
-		strategy = self.strategies[self.STANDARD]
 		dealer_up_rank = game.calc_rank(game.get_dealer_hand()[0])
 		player_total = game.calc_highest_total(game.get_player_hand())
 		self.log.info("      Dealer up card: " + str(dealer_up_rank) + ", Player total: " + str(player_total))	
@@ -73,12 +76,21 @@ class BlackjackAutoGame:
 		self.log.info("   ... Finished hand #" + str(hand_number) + ", reseult: " + result_text + ", bankroll: $" + str(game.get_bankroll()))
 		return result
 
-	def run_game(self, game_number):
+	def run_game(self, strategy, game_number):
 		self.log.info("Starting game #" + str(game_number) + " ...")
-		game = BlackjackGame(self.log, 1, self.starting_bankroll)
+		game = BlackjackGame(self.log, self.starting_bankroll)
 		bet = self.starting_bet
 		for hand_number in range(self.number_of_hands):
-			self.run_hand(game, bet, hand_number + 1)
+			if bet <= self.starting_bankroll:
+				result = self.run_hand(game, strategy, bet, hand_number + 1)
+				if self.betting_strategy == self.FIVE_FOLD_BETTING_STRATEGY:
+					if result > 0:
+						bet = self.starting_bet * 5
+					else:
+						bet = self.starting_bet
+			else:
+				self.log.info("   Almost out of money, bankroll: $" + str(game.get_bankroll()))				
+				break
 		self.log.info("... Finished game #" + str(game_number) + ", bankroll: $" + str(game.get_bankroll()))
 		self.ending_bankrolls.append(game.get_bankroll())
 
@@ -89,9 +101,11 @@ class BlackjackAutoGame:
 			strategy = self.load_strategy(filename)
 			self.strategies[strategy_name] = strategy
 					
+		self.strategy = self.strategies[self.STANDARD_STRATEGY]
+
 		# Start games
 		for game_number in range(self.number_of_games):
-			self.run_game(game_number + 1)
+			self.run_game(self.strategy, game_number + 1)
 			
 		# Print results
 		print("Average ending bankroll: $" + str(sum(self.ending_bankrolls) / len(self.ending_bankrolls)))

@@ -3,10 +3,10 @@ from shoe import Shoe
 from blackjack_rules import BlackjackRules
 
 class BlackjackGame:
-	def __init__(self, log, decks, bankroll):
+	def __init__(self, log, bankroll):
 		self.log = log
-		self.shoe = Shoe(log, decks)
 		self.rules = BlackjackRules(log)
+		self.shoe = Shoe(log, self.rules.get_decks())
 		self.bankroll = bankroll
 		self.dealer_hand = []
 		self.player_hand = []
