@@ -44,6 +44,13 @@ class BlackjackGame:
 			aces = aces - 1
 		return total
 
+	def calc_lowest_total(self, hand):
+		total = 0
+		for card in hand:
+			rank = self.calc_rank(card)
+			total = total + rank
+		return total
+
 	def deal_card(self):
 		card = self.shoe.deal()
 		if card == "":
