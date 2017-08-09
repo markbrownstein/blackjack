@@ -27,9 +27,6 @@ def print_player_hand(game):
 
 if __name__=="__main__":
 	log = Logging(LogSource.PRINT, LogLevel.WARNING)
-	
-	minimum_bet = 1
-	maximum_bet = 100
 	game = BlackjackGame(log, 1, 500)
 	bet = 5
 	while True:
