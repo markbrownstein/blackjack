@@ -1,4 +1,5 @@
 from logging import *
+from command_line_ui import CommandLineUI
 from blackjack_rules import BlackjackRules
 from blackjack_game import BlackjackGame
 
@@ -27,19 +28,21 @@ def print_player_hand(game):
 
 if __name__=="__main__":
 	log = Logging(LogSource.PRINT, LogLevel.WARNING)
+	ui = CommandLineUI(log)
 	game = BlackjackGame(log, 500)
 	bet = 5
 	while True:
 		print("Cash: $" + str(game.get_bankroll()) + ", Bet: $" + str(bet))
-		prompt = "[ C)ontinue, N)ew bet or Q)uit ] "
-		response = input(prompt)
-		if response == 'q' or response == 'Q':
+		#prompt = "[ C)ontinue, N)ew bet or Q)uit ] "
+		#response = input(prompt)
+		response = ui.prompt(["continue", "new bet", "quit"])
+		if response == 'q':
 			break
 		else:
 			deal = False
-			if response == 'n' or response == 'N':
+			if response == 'n':
 				while True:
-					prompt = "[ Enter new bet between $" + str(game.get_rules().get_minimum_bet()) + " and $" + str(game.get_rules().get_maximum_bet()) + "] "
+					prompt = "[ Enter new bet between $" + str(game.get_rules().get_minimum_bet()) + " and $" + str(game.get_rules().get_maximum_bet()) + " ] "
 					response = input(prompt)
 					if response.isdigit():
 						num = int(response)
@@ -48,7 +51,7 @@ if __name__=="__main__":
 							break
 					print("Error: Bad bet entered!")
 				deal = True
-			elif response == 'c' or response == 'c':
+			elif response == 'c':
 				deal = True
 			if deal == True:
 				game.deal_hand(bet)
@@ -56,11 +59,11 @@ if __name__=="__main__":
 				print_dealer_hand(game, True)
 				if game.is_hand_over() == False:
 					while True:
-						prompt = "[ S)tand or H)it ] "
-						response = input(prompt)
-						if response == 's' or response == 'S':
+						commands = ["hit", "stand"]
+						response = ui.prompt(commands)
+						if response == 's':
 							break
-						if response == 'h' or response == 'H':
+						if response == 'h':
 							game.deal_card_to_player()
 							print_player_hand(game)
 							print_dealer_hand(game, True)
