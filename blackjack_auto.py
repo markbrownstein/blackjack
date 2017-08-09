@@ -30,10 +30,10 @@ class BlackjackAutoGame:
 					key = int(row[0])
 					value = []
 					for i in range(10):
-						if row[i + 1] == '1':
-							value.append(True)
+						if row[i + 1].isdigit():
+							value.append(int(row[i + 1]))
 						else:
-							value.append(False)
+							value.append(0)
 					strategy[key] = value
 		return strategy
 	
@@ -46,14 +46,22 @@ class BlackjackAutoGame:
 		if game.is_hand_over() == False:
 			while True:
 				hit = False
-				if player_total < 12:
+				double = False
+				if player_total < 9:
 					hit = True
 				else:
-					hit = strategy[player_total][dealer_up_rank - 1]
+					action = strategy[player_total][dealer_up_rank - 1]
+					if action > 0:
+						hit = True
+						if action > 1 and len(game.get_player_hand()) == 2 and bet * 2 <= game.get_bankroll():
+							bet = bet * 2
+							double = True
 				if hit == True:
 					game.deal_card_to_player()
 					player_total = game.calc_highest_total(game.get_player_hand())
 					self.log.info("      Dealer up card: " + str(dealer_up_rank) + ", Player total: " + str(player_total))
+					if double == True:
+						break
 				else:
 					break
 				if game.is_hand_over() == True:

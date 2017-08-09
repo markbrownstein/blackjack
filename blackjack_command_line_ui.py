@@ -30,11 +30,10 @@ if __name__=="__main__":
 	log = Logging(LogSource.PRINT, LogLevel.WARNING)
 	ui = CommandLineUI(log)
 	game = BlackjackGame(log, 500)
-	bet = 5
+	start_bet = 5
 	while True:
+		bet = start_bet
 		print("Cash: $" + str(game.get_bankroll()) + ", Bet: $" + str(bet))
-		#prompt = "[ C)ontinue, N)ew bet or Q)uit ] "
-		#response = input(prompt)
 		response = ui.prompt(["continue", "new bet", "quit"])
 		if response == 'q':
 			break
@@ -47,7 +46,7 @@ if __name__=="__main__":
 					if response.isdigit():
 						num = int(response)
 						if num >= game.get_rules().get_minimum_bet() and num <= game.get_rules().get_maximum_bet():
-							bet = num
+							start_bet = num
 							break
 					print("Error: Bad bet entered!")
 				deal = True
@@ -60,6 +59,9 @@ if __name__=="__main__":
 				if game.is_hand_over() == False:
 					while True:
 						commands = ["hit", "stand"]
+						if len(game.get_player_hand()) == 2 and bet * 2 <= game.get_bankroll():
+							# TODO: Add option for 9, 10, 11 only
+							commands.append("double down")
 						response = ui.prompt(commands)
 						if response == 's':
 							break
@@ -69,6 +71,12 @@ if __name__=="__main__":
 							print_dealer_hand(game, True)
 							if game.is_hand_over() == True:
 								break
+						if response == 'd':
+							bet = bet * 2
+							game.deal_card_to_player()
+							print_player_hand(game)
+							print_dealer_hand(game, True)
+							break
 				print_player_hand(game)
 				while True:
 					print_dealer_hand(game, False)
