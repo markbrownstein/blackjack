@@ -26,6 +26,17 @@ class BlackjackGame:
 	def get_player_hand(self):
 		return self.player_hand
 
+	def can_double_down(self, hand, bet):
+		can = False
+		if len(hand) == 2 and bet * 2 <= self.bankroll:
+			if self.rules.can_double_down_on_all() == True: 
+				can = True
+			else:
+				total = self.calc_highest_total(hand)
+				if total >= 9 and total <= 11:
+					can = True
+		return can
+	
 	def calc_rank(self, card):
 		rank = 0
 		char = card[0]

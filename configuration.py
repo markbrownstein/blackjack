@@ -14,6 +14,12 @@ class Configuration:
 			self.log.severe("Can't find configuration file: " + filename + " and/or section: " + section)
 			exit()
 
+	def readString(self, key, default):
+		value = default
+		if key in self.config[self.section]:
+			value = self.config[self.section][key]
+		return value
+
 	def readInt(self, key, default):
 		value = default
 		if key in self.config[self.section]:

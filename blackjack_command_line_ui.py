@@ -60,8 +60,7 @@ if __name__=="__main__":
 				if game.is_hand_over() == False:
 					while True:
 						commands = ["hit", "stand"]
-						if len(game.get_player_hand()) == 2 and bet * 2 <= game.get_bankroll():
-							# TODO: Add option for 9, 10, 11 only
+						if game.can_double_down(game.get_player_hand(), bet):
 							commands.append("double down")
 						response = ui.prompt(commands)
 						if response == 's':
