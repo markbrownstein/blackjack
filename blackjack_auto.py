@@ -4,7 +4,7 @@ from blackjack_rules import BlackjackRules
 from blackjack_game import BlackjackGame
 from configuration import Configuration
 
-class BlackjackAutoGame(Configuration):
+class BlackjackAuto(Configuration):
 	STANDARD_STRATEGY = "standard_strategy"
 	
 	STANDARD_BETTING_STRATEGY = "standard_betting_strategy"
@@ -61,15 +61,19 @@ class BlackjackAutoGame(Configuration):
 			while True:
 				hit = False
 				double = False
-				if player_total < 9:
-					hit = True
+				player_soft_total = game.calc_lowest_total(game.get_player_hand())
+				if player_total != player_soft_total:
+					action = strategy[100 + player_total][dealer_up_rank - 1]
 				else:
-					action = strategy[player_total][dealer_up_rank - 1]
-					if action > 0:
-						hit = True
-						if action > 1 and game.can_double_down(game.get_player_hand(), bet):
-							bet = bet * 2
-							double = True
+					if player_total < 9:
+						action = 1
+					else:
+						action = strategy[player_total][dealer_up_rank - 1]
+				if action > 0:
+					hit = True
+					if action > 1 and game.can_double_down(game.get_player_hand(), bet):
+						bet = bet * 2
+						double = True
 				if hit == True:
 					game.deal_card_to_player()
 					player_total = game.calc_highest_total(game.get_player_hand())
