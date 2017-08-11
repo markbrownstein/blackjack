@@ -13,13 +13,13 @@ class BlackjackGame:
 		self.dealer_bust = False
 		self.player_bust = False
 		self.need_to_shuffle = False
-		
+
 	def get_rules(self):
 		return self.rules
-	
+
 	def get_bankroll(self):
 		return self.bankroll
-	
+
 	def get_dealer_hand(self):
 		return self.dealer_hand
 
@@ -29,14 +29,14 @@ class BlackjackGame:
 	def can_double_down(self, hand, bet):
 		can = False
 		if len(hand) == 2 and bet * 2 <= self.bankroll:
-			if self.rules.can_double_down_on_all() == True: 
+			if self.rules.can_double_down_on_all() == True:
 				can = True
 			else:
 				total = self.calc_highest_total(hand)
 				if total >= 9 and total <= 11:
 					can = True
 		return can
-	
+
 	def calc_rank(self, card):
 		rank = 0
 		char = card[0]
@@ -47,7 +47,7 @@ class BlackjackGame:
 		elif char == 'T' or char == 'J' or char == 'Q' or char == 'K':
 			rank = 10
 		return rank
-	
+
 	def calc_highest_total(self, hand):
 		total = 0
 		aces = 0
@@ -69,6 +69,12 @@ class BlackjackGame:
 			total = total + rank
 		return total
 
+	def is_blackjack(self, hand):
+		blackjack = False
+		if self.calc_highest_total(hand) == 21 and len(hand) == 2:
+			blackjack = True
+		return blackjack
+
 	def deal_card(self):
 		card = self.shoe.deal()
 		if card == "":
@@ -79,17 +85,16 @@ class BlackjackGame:
 				self.shoe.shuffle()
 				card = self.shoe.deal()
 		return card
-			
+
 	def deal_card_to_dealer(self):
 		self.dealer_hand.append(self.deal_card())
 		if self.calc_highest_total(self.dealer_hand) > 21:
 			self.dealer_bust = True
-				
+
 	def deal_card_to_player(self):
 		self.player_hand.append(self.deal_card())
 		if self.calc_highest_total(self.player_hand) > 21:
 			self.player_bust = True
-				
 	def deal_hand(self):
 		if self.need_to_shuffle:
 			self.need_to_shuffle = False
@@ -102,33 +107,33 @@ class BlackjackGame:
 		self.dealer_hand.append(self.deal_card())
 		self.player_hand.append(self.deal_card())
 		self.dealer_hand.append(self.deal_card())
-	
+
 	def is_hand_over(self, player_is_done = False):
 		if self.player_bust == True or self.dealer_bust == True:
 			return True
-		dealer_total = self.calc_highest_total(self.dealer_hand)
-		if dealer_total == 21 and len(self.dealer_hand) == 2 or self.calc_highest_total(self.player_hand) == 21 and len(self.player_hand) == 2:
+		if self.is_blackjack(self.dealer_hand) == True or self.is_blackjack(self.player_hand) == True:
 			return True
 		if player_is_done == True:
+			dealer_total = self.calc_highest_total(self.dealer_hand)
 			if dealer_total > 17:
 				return True
 			if dealer_total == 17 and self.rules.does_dealer_hits_on_soft_17() == False:
 				return True
 		return False
-	
+
 	def finish_hand(self, bet):
 		player_won = 0
 		dealer_total = self.calc_highest_total(self.dealer_hand)
 		player_total = self.calc_highest_total(self.player_hand)
-		
+
 		# First, test for player blackjack
 		# TODO: What if player and dealer both have blackjack
-		if player_total == 21 and len(self.player_hand) == 2:
+		if self.is_blackjack(self.player_hand) == True:
 			self.bankroll = self.bankroll + bet * self.rules.get_blackjack_payout()
 			player_won = 2
 		else:
 			# Next, test for dealer blackjack
-			if dealer_total == 21 and len(self.dealer_hand) == 2:
+			if self.is_blackjack(self.dealer_hand) == True:
 				player_won = -1
 			# Now, test for busts
 			elif self.player_bust == True:
@@ -144,7 +149,7 @@ class BlackjackGame:
 		 			player_won = -1
 				else:
 		 			player_won = 1
-					
+
 			# Payout
 			if player_won == 1:
 				self.bankroll = self.bankroll + bet
