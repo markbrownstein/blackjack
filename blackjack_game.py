@@ -90,11 +90,10 @@ class BlackjackGame:
 		if self.calc_highest_total(self.player_hand) > 21:
 			self.player_bust = True
 				
-	def deal_hand(self, bet):
+	def deal_hand(self):
 		if self.need_to_shuffle:
 			self.need_to_shuffle = False
 			self.shoe.shuffle()
-		self.player_bet = bet
 		self.dealer_hand = []
 		self.player_hand = []
 		self.dealer_bust = False
@@ -123,6 +122,7 @@ class BlackjackGame:
 		player_total = self.calc_highest_total(self.player_hand)
 		
 		# First, test for player blackjack
+		# TODO: What if player and dealer both have blackjack
 		if player_total == 21 and len(self.player_hand) == 2:
 			self.bankroll = self.bankroll + bet * self.rules.get_blackjack_payout()
 			player_won = 2
@@ -148,6 +148,6 @@ class BlackjackGame:
 			# Payout
 			if player_won == 1:
 				self.bankroll = self.bankroll + bet
-			if player_won == -1:
+			elif player_won == -1:
 				self.bankroll = self.bankroll - bet
 		return player_won
