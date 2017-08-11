@@ -28,8 +28,22 @@ class CommandLineUI:
 				else:
 					prompt_text = prompt_text + ", "
 			command = option[0].lower()
-			commands.append(command)
-			prompt_text = prompt_text + option[0].upper() + ")" + option[1:]
+			if command in commands:
+				i = 1				
+				while True:
+					command = option[i].lower()
+					if not command in commands:
+						break
+					i = i + 1
+					if i >= len(option):
+						self.log.warning("No option letter available!")
+						break
+				if i < len(option):
+					commands.append(command)
+					prompt_text = prompt_text + option[0:i] + option[i].upper() + ")" + option[i + 1:]
+			else:
+				commands.append(command)
+				prompt_text = prompt_text + option[0].upper() + ")" + option[1:]
 		prompt_text = prompt_text + " ] "
 		
 		# Get answer

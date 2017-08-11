@@ -23,7 +23,11 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			hand = self.get_player_hand()
 			text = "Player";
 		highest_total = self.calc_highest_total(hand)
-		text = text + " hand: " + str(hand) + " ";
+		if dealer_hand == False and self.has_splits():
+			number = self.get_player_hand_number()
+			text = text + " hand #" + str(number) + ": " + str(hand) + " ";
+		else:
+			text = text + " hand: " + str(hand) + " ";
 		if highest_total > 21:
 			text = text + "Bust!"
 		elif dealer_hand == False and show_all_cards == False and highest_total != self.calc_lowest_total(self.get_player_hand()):
@@ -40,23 +44,26 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			return self.HIT;
 		if response == 'd':
 			return self.DOUBLE;
+		if response == 'p':
+			return self.SPLIT;
 		return self.STAND;
 		
-	def end_hand(self, result):
-		result_text = ""
-		if result == 2:
-			result_text = "Blackjack! Player WINS!"
-		elif result == 1:
-			result_text = "Player WINS!"
-		elif result == 0:
-			result_text = "PUSH!"
-		elif result == -1:
-			result_text = "Player LOSES!"
-		print(result_text)
+	def end_hand(self, results):
+		for result in results:
+			result_text = ""
+			if result == 2:
+				result_text = "Blackjack! Player WINS!"
+			elif result == 1:
+				result_text = "Player WINS!"
+			elif result == 0:
+				result_text = "PUSH!"
+			elif result == -1:
+				result_text = "Player LOSES!"
+			print(result_text)
 
 	def run(self):
 		while True:
-			print("Cash: $" + str(self.get_bankroll()) + ", Bet: $" + str(self.get_starting_bet()))
+			print("\nCash: $" + str(self.get_bankroll()) + ", Bet: $" + str(self.get_starting_bet()))
 			response = self.ui.prompt(["continue", "new bet", "quit"])
 			if response == 'q':
 				break

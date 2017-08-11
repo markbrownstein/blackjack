@@ -3,16 +3,33 @@ from shoe import Shoe
 from blackjack_rules import BlackjackRules
 
 class BlackjackGame:
+	HAND = "hand"
+	BUST = "bust"
+	DONE = "done"
+	NUMBER = "number"
+	BET = "bet"
+	
 	def __init__(self, log, bankroll):
+		# Logger
 		self.log = log
+		
+		# Required objects
 		self.rules = BlackjackRules(log)
 		self.shoe = Shoe(log, self.rules.get_decks())
+		
+		# Variables
 		self.bankroll = bankroll
-		self.dealer_hand = []
-		self.player_hand = []
-		self.dealer_bust = False
-		self.player_bust = False
+		self.original_bet = 0
 		self.need_to_shuffle = False
+		self.split_hand_number = 1
+
+		# Dealer hand related variables
+		self.dealer_hand = []
+		self.dealer_bust = False
+
+		# Player hand related variables
+		self.player_hand = self.new_player_hand()
+		self.split_hands = []
 
 	def get_rules(self):
 		return self.rules
@@ -24,10 +41,14 @@ class BlackjackGame:
 		return self.dealer_hand
 
 	def get_player_hand(self):
-		return self.player_hand
+		return self.player_hand[self.HAND]
+		
+	def get_player_hand_number(self):
+		return self.player_hand[self.NUMBER]
 
 	def can_double_down(self, hand, bet):
 		can = False
+		# TODO: bet test needs to incorporate total bets
 		if len(hand) == 2 and bet * 2 <= self.bankroll:
 			if self.rules.can_double_down_on_all() == True:
 				can = True
@@ -35,6 +56,13 @@ class BlackjackGame:
 				total = self.calc_highest_total(hand)
 				if total >= 9 and total <= 11:
 					can = True
+		return can
+
+	def can_split(self, hand, bet):
+		can = False
+		# TODO: bet test needs to incorporate total bets
+		if len(hand) == 2 and hand[0][0] == hand[1][0] and bet * 2 <= self.bankroll:
+			can = True
 		return can
 
 	def calc_rank(self, card):
@@ -74,7 +102,20 @@ class BlackjackGame:
 		if self.calc_highest_total(hand) == 21 and len(hand) == 2:
 			blackjack = True
 		return blackjack
+		
+	def has_splits(self):
+		if len(self.split_hands) > 0:
+			return True
+		return False
 
+	def new_player_hand(self):
+		new_hand = { self.HAND: [], self.BUST: False, self.DONE: False, self.BET: self.original_bet, self.NUMBER: self.split_hand_number }
+		self.split_hand_number = self.split_hand_number + 1
+		return new_hand
+		
+	def double_bet(self):
+		self.player_hand[self.BET] = self.player_hand[self.BET] * 2
+	
 	def deal_card(self):
 		card = self.shoe.deal()
 		if card == "":
@@ -92,26 +133,63 @@ class BlackjackGame:
 			self.dealer_bust = True
 
 	def deal_card_to_player(self):
-		self.player_hand.append(self.deal_card())
-		if self.calc_highest_total(self.player_hand) > 21:
-			self.player_bust = True
-	def deal_hand(self):
+		self.player_hand[self.HAND].append(self.deal_card())
+		if self.calc_highest_total(self.player_hand[self.HAND]) > 21:
+			self.player_hand[self.BUST] = True
+
+	def deal_hand(self, bet):
+		# Save original bet
+		self.original_bet = bet
+		
+		# Shuffle if need be
 		if self.need_to_shuffle:
 			self.need_to_shuffle = False
 			self.shoe.shuffle()
+		
+		# Setup hands
 		self.dealer_hand = []
-		self.player_hand = []
 		self.dealer_bust = False
-		self.player_bust = False
-		self.player_hand.append(self.deal_card())
+		self.split_hands = []
+		self.split_hand_number = 1
+		self.player_hand = self.new_player_hand()
+		
+		# Deal hands
+		self.player_hand[self.HAND].append(self.deal_card())
 		self.dealer_hand.append(self.deal_card())
-		self.player_hand.append(self.deal_card())
+		self.player_hand[self.HAND].append(self.deal_card())
 		self.dealer_hand.append(self.deal_card())
+	
+	def split_hand(self):
+		self.log.finer("Before split: " + str(self.player_hand[self.HAND]))
+		new_hand = self.new_player_hand()
+		card = self.player_hand[self.HAND].pop()
+		new_hand[self.HAND].append(card)
+		self.player_hand[self.HAND].append(self.deal_card())
+		new_hand[self.HAND].append(self.deal_card())
+		self.split_hands.append(new_hand)
+		self.log.finer("After split: " + str(self.player_hand[self.HAND]) + str(new_hand[self.HAND]))
+
+	def next_hand(self):
+		next = False;
+		self.player_hand[self.DONE] = True
+		for i in range(len(self.split_hands)):
+			#print(self.split_hands[i])
+			if self.split_hands[i][self.DONE] == False:
+				next = True
+				
+				# Append current hand at the end of the split list
+				self.split_hands.append(self.player_hand)
+				
+				# Pop the next not done hand and make it the current hand
+				self.player_hand = self.split_hands.pop(i)
+				
+				break;
+		return next
 
 	def is_hand_over(self, player_is_done = False):
-		if self.player_bust == True or self.dealer_bust == True:
+		if self.player_hand[self.BUST] == True or self.dealer_bust == True:
 			return True
-		if self.is_blackjack(self.dealer_hand) == True or self.is_blackjack(self.player_hand) == True:
+		if self.is_blackjack(self.dealer_hand) == True or self.is_blackjack(self.player_hand[self.HAND]) == True:
 			return True
 		if player_is_done == True:
 			dealer_total = self.calc_highest_total(self.dealer_hand)
@@ -121,42 +199,51 @@ class BlackjackGame:
 				return True
 		return False
 
-	def finish_hand(self, bet):
-		player_won = 0
-		dealer_total = self.calc_highest_total(self.dealer_hand)
-		player_total = self.calc_highest_total(self.player_hand)
+	def finish_hand(self):
+		result = []
+		while True:
+			player_won = 0
+			dealer_total = self.calc_highest_total(self.dealer_hand)
+			player_total = self.calc_highest_total(self.player_hand[self.HAND])
 
-		# First, test for blackjacks
-		player_blackjack = self.is_blackjack(self.player_hand)
-		dealer_blackjack = self.is_blackjack(self.dealer_hand)
-		if player_blackjack == True:
-			# Player blackjack! If dealer has blackjack too, push
-			if dealer_blackjack == False:
-				# No dealer black jack, pay out for blackjack
-				self.bankroll = self.bankroll + bet * self.rules.get_blackjack_payout()
-				player_won = 2
-		else:
-			# Next, test for dealer blackjack
-			if dealer_blackjack == True:
-				player_won = -1
-			# Now, test for busts
-			elif self.player_bust == True:
-				player_won = -1
-			elif self.dealer_bust == True:
-				player_won = 1
+			# First, test for blackjacks
+			player_blackjack = self.is_blackjack(self.player_hand[self.HAND])
+			dealer_blackjack = self.is_blackjack(self.dealer_hand)
+			if player_blackjack == True:
+				# Player blackjack! If dealer has blackjack too, push
+				if dealer_blackjack == False:
+					# No dealer black jack, pay out for blackjack
+					self.bankroll = self.bankroll + self.player_hand[self.BET] * self.rules.get_blackjack_payout()
+					player_won = 2
 			else:
-				# Now, compare hands
-				if dealer_total == player_total:
-					if self.rules.does_push_goes_to_dealer() == True:
-			 			player_won = -1
-				elif dealer_total > player_total:
-		 			player_won = -1
+				# Next, test for dealer blackjack
+				if dealer_blackjack == True:
+					player_won = -1
+				# Now, test for busts
+				elif self.player_hand[self.BUST] == True:
+					player_won = -1
+				elif self.dealer_bust == True:
+					player_won = 1
 				else:
-		 			player_won = 1
+					# Now, compare hands
+					if dealer_total == player_total:
+						if self.rules.does_push_goes_to_dealer() == True:
+				 			player_won = -1
+					elif dealer_total > player_total:
+			 			player_won = -1
+					else:
+			 			player_won = 1
 
-			# Payout
-			if player_won == 1:
-				self.bankroll = self.bankroll + bet
-			elif player_won == -1:
-				self.bankroll = self.bankroll - bet
-		return player_won
+				# Payout
+				if player_won == 1:
+					self.bankroll = self.bankroll + self.player_hand[self.BET]
+				elif player_won == -1:
+					self.bankroll = self.bankroll - self.player_hand[self.BET]
+			result.append(player_won)
+			
+			if len(self.split_hands) > 0:
+				# Pop the next hand and make it the current hand
+				self.player_hand = self.split_hands.pop(0)
+			else:
+				break;
+		return result

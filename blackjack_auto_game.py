@@ -96,17 +96,18 @@ class BlackjackAutoGame(BlackjackGameFramework):
 	def start_hand(self):
 		self.log.fine("   Starting hand #" + str(self.hand_number) + ", bet: $" + str(self.get_current_bet()) + " ...")
 		
-	def end_hand(self, result):
-		result_text = ""
-		if result == 2:
-			result_text = "Blackjack! Player WINS!"
-		elif result == 1:
-			result_text = "Player WINS!"
-		elif result == 0:
-			result_text = "PUSH!"
-		elif result == -1:
-			result_text = "Player LOSES!"
-		self.log.fine("   ... Finished hand #" + str(self.hand_number) + ", result: " + result_text + ", bankroll: $" + str(self.get_bankroll()))
+	def end_hand(self, results):
+		for result in results:
+			result_text = ""
+			if result == 2:
+				result_text = "Blackjack! Player WINS!"
+			elif result == 1:
+				result_text = "Player WINS!"
+			elif result == 0:
+				result_text = "PUSH!"
+			elif result == -1:
+				result_text = "Player LOSES!"
+			self.log.fine("   ... Finished hand #" + str(self.hand_number) + ", result: " + result_text + ", bankroll: $" + str(self.get_bankroll()))
 		
 	def run(self):
 		# Start games
