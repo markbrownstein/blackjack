@@ -126,14 +126,18 @@ class BlackjackGame:
 		dealer_total = self.calc_highest_total(self.dealer_hand)
 		player_total = self.calc_highest_total(self.player_hand)
 
-		# First, test for player blackjack
-		# TODO: What if player and dealer both have blackjack
-		if self.is_blackjack(self.player_hand) == True:
-			self.bankroll = self.bankroll + bet * self.rules.get_blackjack_payout()
-			player_won = 2
+		# First, test for blackjacks
+		player_blackjack = self.is_blackjack(self.player_hand)
+		dealer_blackjack = self.is_blackjack(self.dealer_hand)
+		if player_blackjack == True:
+			# Player blackjack! If dealer has blackjack too, push
+			if dealer_blackjack == False:
+				# No dealer black jack, pay out for blackjack
+				self.bankroll = self.bankroll + bet * self.rules.get_blackjack_payout()
+				player_won = 2
 		else:
 			# Next, test for dealer blackjack
-			if self.is_blackjack(self.dealer_hand) == True:
+			if dealer_blackjack == True:
 				player_won = -1
 			# Now, test for busts
 			elif self.player_bust == True:
