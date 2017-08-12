@@ -39,17 +39,14 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		print(text)
 
 	def decide_insurance(self):
-		response = self.ui.yesno_prompt("Insurance: ")
+		response = self.ui.noyes_prompt("Insurance: ")
 		if response == 'y':
 			return self.YES;
 		return self.NO
-		
-	def decide_surrender(self):
-		response = self.ui.noyes_prompt("Surrender: ")
-		if response == 'y':
-			return self.YES;
-		return self.NO
-		
+
+	def decide_insurance_amount(self):
+		return self.ui.double_prompt("Enter insurance amount", "Error: bad insurance amount", 0, self.get_current_bet() / 2, '$')
+
 	def decide_hand(self, choices):
 		response = self.ui.prompt(choices)
 		if response == 'h':
@@ -61,7 +58,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		if response == 'u':
 			return self.SURRENDER;
 		return self.STAND;
-		
+
 	def end_hand(self, results):
 		for result in results:
 			print(self.get_result_text(result))
@@ -75,15 +72,8 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			else:
 				deal = False
 				if response == 'n':
-					while True:
-						prompt = "[ Enter new bet between $" + str(self.get_rules().get_minimum_bet()) + " and $" + str(self.get_rules().get_maximum_bet()) + " ] "
-						response = input(prompt)
-						if response.isdigit():
-							num = int(response)
-							if num >= self.get_rules().get_minimum_bet() and num <= self.get_rules().get_maximum_bet():
-								self.set_starting_bet(num)
-								break
-						print("Error: Bad bet entered!")
+					bet = self.ui.int_prompt("Enter new bet", "Error: Bad bet entered!", self.get_rules().get_minimum_bet(), self.get_rules().get_maximum_bet(), "$")
+					self.set_starting_bet(bet)
 					deal = True
 				elif response == 'c':
 					deal = True

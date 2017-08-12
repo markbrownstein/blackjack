@@ -29,6 +29,7 @@ class BlackjackGame:
 		self.original_bet = 0
 		self.need_to_shuffle = False
 		self.split_hand_number = 1
+		self.insurance = 0
 
 		# Dealer hand related variables
 		self.dealer_hand = []
@@ -55,8 +56,7 @@ class BlackjackGame:
 
 	def can_double_down(self, hand, bet):
 		can = False
-		# TODO: bet test needs to incorporate total bets
-		if len(hand) == 2 and bet * 2 <= self.bankroll:
+		if len(hand) == 2 and self.calc_total_bets() + bet <= self.bankroll:
 			if self.rules.can_double_down_on_all() == True:
 				can = True
 			else:
@@ -67,14 +67,19 @@ class BlackjackGame:
 
 	def can_split(self, hand, bet):
 		can = False
-		# TODO: bet test needs to incorporate total bets
-		if len(hand) == 2 and hand[0][0] == hand[1][0] and bet * 2 <= self.bankroll:
+		if len(hand) == 2 and hand[0][0] == hand[1][0] and self.calc_total_bets() + bet <= self.bankroll:
 			can = True
 		return can
 
 	def can_surrender(self):
 		can = False
 		if self.rules.is_surrender_allowed() and len(self.player_hand[self.HAND]) == 2 and len(self.split_hands) == 0:
+			can = True
+		return can
+
+	def can_buy_insurance(self):
+		can = False
+		if self.rules.is_insurance_allowed() and self.calc_rank(self.dealer_hand[1]) == 1 and self.calc_total_bets() < self.bankroll:
 			can = True
 		return can
 
@@ -110,12 +115,18 @@ class BlackjackGame:
 			total = total + rank
 		return total
 
+	def calc_total_bets(self):
+		total = self.player_hand[self.BET]
+		for hand in self.split_hands:
+			total = total + hand[self.BET]
+		return total
+
 	def is_blackjack(self, hand):
 		blackjack = False
 		if self.calc_highest_total(hand) == 21 and len(hand) == 2:
 			blackjack = True
 		return blackjack
-		
+
 	def has_splits(self):
 		if len(self.split_hands) > 0:
 			return True
@@ -134,6 +145,12 @@ class BlackjackGame:
 		self.player_hand[self.SURRENDER] = True
 		self.player_hand[self.DONE] = True
 	
+	def buy_insurance(self, insurance):
+		if insurance >= 0 and insurance <= self.original_bet / 2 and self.calc_total_bets() + insurance <= self.bankroll:
+			self.insurance = insurance
+			return True
+		return False
+
 	def deal_card(self):
 		card = self.shoe.deal()
 		if card == "":
@@ -170,6 +187,7 @@ class BlackjackGame:
 		self.split_hands = []
 		self.split_hand_number = 1
 		self.player_hand = self.new_player_hand()
+		self.insurance = 0
 		
 		# Deal hands
 		self.player_hand[self.HAND].append(self.deal_card())
@@ -226,6 +244,16 @@ class BlackjackGame:
 
 	def finish_hand(self):
 		result = []
+		
+		# Handle insurance bet
+		dealer_blackjack = self.is_blackjack(self.dealer_hand)
+		if self.insurance > 0:
+			if dealer_blackjack:
+				self.bankroll = self.bankroll + self.insurance * 2
+			else:
+				self.bankroll = self.bankroll - self.insurance
+
+		# Go through hands
 		while True:
 			if self.player_hand[self.SURRENDER] == True:
 				# Surrender, bet should be halved
@@ -238,7 +266,6 @@ class BlackjackGame:
 
 				# First, test for blackjacks
 				player_blackjack = self.is_blackjack(self.player_hand[self.HAND])
-				dealer_blackjack = self.is_blackjack(self.dealer_hand)
 				if player_blackjack == True:
 					# Player blackjack! If dealer has blackjack too, push
 					if dealer_blackjack == False:

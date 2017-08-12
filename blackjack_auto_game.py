@@ -83,12 +83,6 @@ class BlackjackAutoGame(BlackjackGameFramework):
 			else:
 				self.log.fine("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[1])) + ", Player total: " + player_total_string)
 	
-	def decide_insurance(self):
-		return self.NO
-		
-	def decide_surrender(self):
-		return self.NO
-		
 	def decide_hand(self, choices):
 		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
 		if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and self.SPLIT in choices:

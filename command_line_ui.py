@@ -59,7 +59,31 @@ class CommandLineUI:
 		return response 
 
 	def yesno_prompt(self, text = ""):
-			return self.prompt(["yes", "no"], text)
+		return self.prompt(["yes", "no"], text)
 
 	def noyes_prompt(self, text = ""):
-			return self.prompt(["no", "yes"], text)
+		return self.prompt(["no", "yes"], text)
+
+	def int_prompt(self, text, error, min, max, prefix = ''):
+		prompt = "[ " + text + " between " + prefix + str(min) + " and " + prefix + str(max) + " ] "
+		while True:
+			response = input(prompt)
+			try:
+				num = int(response)
+				if num >= min and num <= max:
+					return num
+			except ValueError:
+				pass
+			print(error)
+
+	def double_prompt(self, text, error, min, max, prefix = ''):
+		prompt = "[ " + text + " between " + prefix + str(min) + " and " + prefix + str(max) + " ] "
+		while True:
+			response = input(prompt)
+			try:
+				num = float(response)
+				if num >= min and num <= max:
+					return num
+			except ValueError:
+				pass
+			print(error)

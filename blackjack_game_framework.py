@@ -48,8 +48,8 @@ class BlackjackGameFramework(BlackjackGame):
 	def decide_insurance(self):
 		return self.NO
 		
-	def decide_surrender(self):
-		return self.NO
+	def decide_insurance_amount(self):
+		return 0
 		
 	def decide_hand(self, choices):
 		return self.STAND
@@ -63,7 +63,17 @@ class BlackjackGameFramework(BlackjackGame):
 	def play_hand(self):
 		self.start_hand()
 		self.deal_hand(self.get_current_bet())
-		# TODO: Insurance goes here
+
+		# Insurance
+		if self.can_buy_insurance():
+			self.show_hand(False)
+			self.show_hand(True)
+			if self.decide_insurance() == self.YES:
+				insurance = self.decide_insurance_amount()
+				if insurance > 0:
+					self.buy_insurance(insurance)
+
+		# Does the player or dealer have blackjack?
 		if self.is_player_hand_over() == False and self.is_blackjack(self.get_dealer_hand()) == False:
 			self.show_hand(False)
 			self.show_hand(True)
