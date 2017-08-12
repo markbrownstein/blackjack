@@ -77,6 +77,12 @@ class BlackjackAutoGame(BlackjackGameFramework):
 			else:
 				self.log.fine("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[0])) + ", Player total: " + player_total_string)
 	
+	def decide_insurance(self):
+		return self.NO
+		
+	def decide_surrender(self):
+		return self.NO
+		
 	def decide_hand(self, choices):
 		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[0])
 		player_total = self.calc_highest_total(self.get_player_hand())
@@ -98,16 +104,7 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		
 	def end_hand(self, results):
 		for result in results:
-			result_text = ""
-			if result == 2:
-				result_text = "Blackjack! Player WINS!"
-			elif result == 1:
-				result_text = "Player WINS!"
-			elif result == 0:
-				result_text = "PUSH!"
-			elif result == -1:
-				result_text = "Player LOSES!"
-			self.log.fine("   ... Finished hand #" + str(self.hand_number) + ", result: " + result_text + ", bankroll: $" + str(self.get_bankroll()))
+			self.log.fine("   ... Finished hand #" + str(self.hand_number) + ", result: " + self.get_result_text(result) + ", bankroll: $" + str(self.get_bankroll()))
 		
 	def run(self):
 		# Start games

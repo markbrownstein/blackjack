@@ -38,6 +38,18 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			text = text + str(self.calc_highest_total(hand))			
 		print(text)
 
+	def decide_insurance(self):
+		response = self.ui.yesno_prompt("Insurance: ")
+		if response == 'y':
+			return self.YES;
+		return self.NO
+		
+	def decide_surrender(self):
+		response = self.ui.noyes_prompt("Surrender: ")
+		if response == 'y':
+			return self.YES;
+		return self.NO
+		
 	def decide_hand(self, choices):
 		response = self.ui.prompt(choices)
 		if response == 'h':
@@ -46,20 +58,13 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			return self.DOUBLE;
 		if response == 'p':
 			return self.SPLIT;
+		if response == 'u':
+			return self.SURRENDER;
 		return self.STAND;
 		
 	def end_hand(self, results):
 		for result in results:
-			result_text = ""
-			if result == 2:
-				result_text = "Blackjack! Player WINS!"
-			elif result == 1:
-				result_text = "Player WINS!"
-			elif result == 0:
-				result_text = "PUSH!"
-			elif result == -1:
-				result_text = "Player LOSES!"
-			print(result_text)
+			print(self.get_result_text(result))
 
 	def run(self):
 		while True:

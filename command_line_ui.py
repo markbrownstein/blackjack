@@ -16,9 +16,11 @@ class CommandLineUI:
 	def printBlue(self, text):
 		print(self.OKBLUE + text + self.ENDC)
 		
-	def prompt(self, option_list):
+	def prompt(self, option_list, text = ""):
 		# Construct prompt
 		prompt_text = "[ "
+		if len(text) > 0:
+			prompt_text = prompt_text + text + " "
 		commands = []
 		for i in range(len(option_list)):
 			option = option_list[i]
@@ -49,7 +51,15 @@ class CommandLineUI:
 		# Get answer
 		while True:
 			response = input(prompt_text).lower()
+			if not response:
+				response = commands[0]
+				break
 			if response in commands:
 				break
 		return response 
-			
+
+	def yesno_prompt(self, text = ""):
+			return self.prompt(["yes", "no"], text)
+
+	def noyes_prompt(self, text = ""):
+			return self.prompt(["no", "yes"], text)

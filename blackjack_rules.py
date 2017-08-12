@@ -14,6 +14,8 @@ class BlackjackRules(Configuration):
 		self.double_down_on_all = Configuration.readBoolean(self, "DoubleDownOnAll", False)
 		self.push_goes_to_dealer = Configuration.readBoolean(self, "PushGoesToDealer", False)
 		self.dealer_hits_on_soft_17 = Configuration.readBoolean(self, "DealerHitsOnSoft17", False)
+		self.insurance_allowed = Configuration.readBoolean(self, "InsuranceAllowed", False)
+		self.surrender_allowed = Configuration.readBoolean(self, "SurrenderAllowed", False)
 
 	def get_decks(self):
 		return self.decks
@@ -35,5 +37,11 @@ class BlackjackRules(Configuration):
 
 	def does_dealer_hits_on_soft_17(self):
 		return self.dealer_hits_on_soft_17
+
+	def is_insurance_allowed(self):
+		return self.insurance_allowed
+
+	def is_surrender_allowed(self):
+		return self.surrender_allowed
 
 		
