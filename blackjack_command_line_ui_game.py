@@ -3,12 +3,12 @@ from command_line_ui import CommandLineUI
 from blackjack_game_framework import BlackjackGameFramework
 
 class BlackjackCommandLineUIGame(BlackjackGameFramework):
-	def __init__(self, log, bankroll, starting_bet):
+	def __init__(self, log, rules_section = "DEFAULT"):
 		# Initialize log
 		self.log = log
 		
 		# Initialize framework
-		BlackjackGameFramework.__init__(self, self.log, bankroll, starting_bet)
+		BlackjackGameFramework.__init__(self, self.log, 500, 5, rules_section)
 		
 		# Initialize UI
 		self.ui = CommandLineUI(self.log)

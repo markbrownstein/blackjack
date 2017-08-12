@@ -9,9 +9,9 @@ class BlackjackGameFramework(BlackjackGame):
 	YES = "yes"
 	NO = "no"
 	
-	def __init__(self, log, bankroll, starting_bet):
+	def __init__(self, log, bankroll, starting_bet, rules_section = "DEFAULT"):
 		self.log = log
-		BlackjackGame.__init__(self, log, bankroll)
+		BlackjackGame.__init__(self, log, bankroll, rules_section)
 		self.starting_bet = starting_bet
 		self.current_bet = self.starting_bet
 

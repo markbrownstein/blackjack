@@ -16,12 +16,12 @@ class BlackjackGame:
 	LOSS_RESULT = -1
 	SURRENDER_RESULT = -2
 	
-	def __init__(self, log, bankroll):
+	def __init__(self, log, bankroll, rules_section = "DEFAULT"):
 		# Logger
 		self.log = log
 		
 		# Required objects
-		self.rules = BlackjackRules(log)
+		self.rules = BlackjackRules(log, rules_section)
 		self.shoe = Shoe(log, self.rules.get_decks())
 		
 		# Variables
@@ -94,7 +94,7 @@ class BlackjackGame:
 		aces = 0
 		for card in hand:
 			rank = self.calc_rank(card)
-			self.log.finest("card: " + card + ", rank: " + str(rank))
+			#self.log.finest("card: " + card + ", rank: " + str(rank))
 			if rank == 1:
 				aces = aces + 1
 			total = total + rank

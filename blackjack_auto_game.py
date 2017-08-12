@@ -6,6 +6,12 @@ from configuration import Configuration
 from blackjack_game_framework import BlackjackGameFramework
 
 class BlackjackAutoGame(BlackjackGameFramework):
+	AUTO_DOUBLE = 2
+	AUTO_HIT = 1
+	AUTO_STAND = 0
+	AUTO_SURRENDER = -1
+	AUTO_SPLIT = 1
+	
 	STANDARD_STRATEGY = "standard_strategy"
 	
 	STANDARD_BETTING_STRATEGY = "standard_betting_strategy"
@@ -57,9 +63,9 @@ class BlackjackAutoGame(BlackjackGameFramework):
 					key = int(row[0])
 					value = []
 					for i in range(10):
-						if row[i + 1].isdigit():
+						try:
 							value.append(int(row[i + 1]))
-						else:
+						except ValueError:
 							value.append(0)
 					strategy[key] = value
 		return strategy
@@ -75,7 +81,7 @@ class BlackjackAutoGame(BlackjackGameFramework):
 			if show_all_cards == True:
 				self.log.fine("      Dealer total: " + str(self.calc_highest_total(self.get_dealer_hand())) + ", Player total: " + player_total_string)
 			else:
-				self.log.fine("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[0])) + ", Player total: " + player_total_string)
+				self.log.fine("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[1])) + ", Player total: " + player_total_string)
 	
 	def decide_insurance(self):
 		return self.NO
@@ -84,19 +90,31 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		return self.NO
 		
 	def decide_hand(self, choices):
-		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[0])
+		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
+		if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and self.SPLIT in choices:
+			player_rank = self.calc_rank(self.get_player_hand()[0])
+			self.log.finest("Possible auto split: player rank=" + str(player_rank) + ", dealer up rank=" + str(dealer_up_rank))
+			action = self.strategy[200 + player_rank][dealer_up_rank - 1]
+			if action == self.AUTO_SPLIT:
+				return self.SPLIT
 		player_total = self.calc_highest_total(self.get_player_hand())
-		if player_total != self.calc_lowest_total(self.get_player_hand()):
-			action = self.strategy[100 + player_total][dealer_up_rank - 1]
-		else:
-			if player_total < 9:
-				action = 1
+		if player_total < 21:
+			if player_total != self.calc_lowest_total(self.get_player_hand()):
+				action = self.strategy[100 + player_total][dealer_up_rank - 1]
 			else:
-				action = self.strategy[player_total][dealer_up_rank - 1]
-		if action > 0:
-			if action > 1 and self.DOUBLE in choices:
-				return self.DOUBLE
-			return self.HIT
+				if player_total < 9:
+					action = self.AUTO_HIT
+				else:
+					action = self.strategy[player_total][dealer_up_rank - 1]
+					self.log.finest("Strategy action=" + str(action))
+			if action > self.AUTO_STAND:
+				if action > self.AUTO_HIT and self.DOUBLE in choices:
+					return self.DOUBLE
+				return self.HIT
+			elif action == self.AUTO_SURRENDER:
+				if self.SURRENDER in choices:
+					return self.SURRENDER
+				return self.HIT
 		return self.STAND
 
 	def start_hand(self):

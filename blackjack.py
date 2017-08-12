@@ -19,6 +19,7 @@ FINEST = "finest" # 6
 if __name__=="__main__":
 	print_intructions = True
 	if len(sys.argv) > 1:
+		# Read log level from command line
 		log_level = 0
 		if len(sys.argv) > 2:
 			if SEVERE == sys.argv[2].lower():
@@ -34,13 +35,20 @@ if __name__=="__main__":
 			elif FINEST == sys.argv[2].lower():
 				log_level = 6
 		log = Logging(LogSource.PRINT, log_level)
+
+		# Read INI section from command line
+		section = "DEFAULT"
+		if len(sys.argv) > 3:
+			section = sys.argv[3]
+		
+		# Run game
 		if UI == sys.argv[1].lower():
 			print_intructions = False
-			game = BlackjackCommandLineUIGame(log, 500, 5)
+			game = BlackjackCommandLineUIGame(log, section)
 			game.run()
 		elif AUTO == sys.argv[1].lower():
 			print_intructions = False
-			game = BlackjackAutoGame(log)
+			game = BlackjackAutoGame(log, section)
 			game.run()
 	if print_intructions == True:
-		print("Usage: blackjack.py [ ui|auto ] { none|severe|warning|info|fine|finer|finest }")
+		print("Usage: blackjack.py [ ui|auto ] { none|severe|warning|info|fine|finer|finest } { DEFAULT }")

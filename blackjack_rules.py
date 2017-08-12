@@ -2,9 +2,9 @@ from logging import *
 from configuration import Configuration
 
 class BlackjackRules(Configuration):
-	def __init__(self, log, rules = "DEFAULT"):
+	def __init__(self, log, rules_section = "DEFAULT"):
 		# Initialize and read INI file
-		Configuration.__init__(self, log, "rules.ini", rules)
+		Configuration.__init__(self, log, "rules.ini", rules_section)
 			
 		# Read section
 		self.decks = Configuration.readInt(self, "Decks", 4)
