@@ -1,17 +1,51 @@
 from logging import *
 from command_line_ui import CommandLineUI
+from users import Users
 from blackjack_game_framework import BlackjackGameFramework
 
 class BlackjackCommandLineUIGame(BlackjackGameFramework):
 	def __init__(self, log, rules_section = "DEFAULT"):
 		# Initialize log
 		self.log = log
-		
-		# Initialize framework
-		BlackjackGameFramework.__init__(self, self.log, 500, 5, rules_section)
-		
+
 		# Initialize UI
 		self.ui = CommandLineUI(self.log)
+
+		# Load user
+		bankroll = 500
+		starting_bet = 5
+		self.user = ""
+		self.users = False
+		while True:
+			response = self.ui.prompt(["guest", "login", "new user"], "Play as ")
+			if response == 'g':
+				break
+			if response == 'l' or response == 'n':
+				self.users = Users(self.log)
+				if response == 'l':
+					user = self.ui.string_prompt("user name")
+					password = self.ui.string_prompt("password")
+					if self.users.login(user, password):
+						self.user = user
+						bankroll = self.users.get_bankroll(self.user)
+						starting_bet = self.users.get_starting_bet(self.user)
+						break
+					else:
+						print("Error: Login failed!")
+				elif response == 'n':
+					while True:
+						user = self.ui.string_prompt("new user name")
+						password = self.ui.string_prompt("password")
+						if self.users.has_user(user):
+							print("Error: User " + user + " already exists!")
+						else:
+							self.user = user
+							self.users.save_new_user(user, password, bankroll, starting_bet)
+							break
+					break
+
+		# Initialize framework
+		BlackjackGameFramework.__init__(self, self.log, bankroll, starting_bet, rules_section)
 
 	def show_hand(self, dealer_hand, show_all_cards = False):
 		if dealer_hand == True:
@@ -30,6 +64,8 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			text = text + " hand: " + str(hand) + " ";
 		if highest_total > 21:
 			text = text + "Bust!"
+		elif (dealer_hand == False or show_all_cards == True) and self.is_blackjack(hand):
+			text = text + "Blackjack!"			
 		elif dealer_hand == False and show_all_cards == False and highest_total != self.calc_lowest_total(self.get_player_hand()):
 			text = text + str(self.calc_lowest_total(self.get_player_hand())) + " or " + str(highest_total)
 		elif dealer_hand == True and show_all_cards == False:
@@ -60,12 +96,24 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		return self.STAND;
 
 	def end_hand(self, results):
+		# Show results
 		for result in results:
 			print(self.get_result_text(result))
+		
+		# Save user info
+		if len(self.user) > 0:
+			self.users.save(self.user, self.get_bankroll(), self.get_starting_bet())
 
 	def run(self):
+		# Main game loop
 		while True:
-			print("\nCash: $" + str(self.get_bankroll()) + ", Bet: $" + str(self.get_starting_bet()))
+			stat_line = "\n"
+			if len(self.user) > 0:
+				stat_line = stat_line + self.user
+			else:
+				stat_line = stat_line + "Guest"
+			stat_line = stat_line + ", Cash: $" + str(self.get_bankroll()) + ", Bet: $" + str(self.get_starting_bet())
+			print(stat_line)
 			response = self.ui.prompt(["continue", "new bet", "quit"])
 			if response == 'q':
 				break

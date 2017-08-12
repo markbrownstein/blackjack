@@ -64,6 +64,10 @@ class CommandLineUI:
 	def noyes_prompt(self, text = ""):
 		return self.prompt(["no", "yes"], text)
 
+	def string_prompt(self, text):
+		prompt = "Enter " + text + ": "
+		return input(prompt)
+
 	def int_prompt(self, text, error, min, max, prefix = ''):
 		prompt = "[ " + text + " between " + prefix + str(min) + " and " + prefix + str(max) + " ] "
 		while True:
