@@ -17,11 +17,12 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		# Load user
 		bankroll = 500
 		starting_bet = 5
+		card_counting_strategy = self.NONE
 		self.advise = False
 		self.user = ""
 		self.users = False
 		self.strategy = False
-		self.card_counting_strategy = None
+		#self.card_counting_strategy = None
 		while True:
 			response = self.ui.prompt(["guest", "login", "new user"], "Play as ")
 			if response == 'g':
@@ -36,6 +37,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 						bankroll = self.users.get_bankroll()
 						starting_bet = self.users.get_starting_bet()
 						self.advise = self.users.get_advise()
+						card_counting_strategy = self.users.get_card_counting_strategy()
 						break
 					else:
 						print("Error: Login failed!")
@@ -53,6 +55,10 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 
 		# Initialize framework
 		BlackjackGameFramework.__init__(self, self.log, bankroll, starting_bet, rules_section)
+
+		# Load card counting strategy
+		if card_counting_strategy != self.NONE:
+			self.load_card_counting_strategy(card_counting_strategy)
 
 	def show_hand(self, dealer_hand, show_all_cards = False):
 		if dealer_hand == True:
@@ -96,7 +102,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			if self.strategy == False:
 				self.strategy = self.load_strategy(self.STANDARD_STRATEGY_FILENAME)
 			auto = self.advise_hand(self.strategy, choices)
-			advice = "Advice: " + auto[0].upper() + auto[1:] + ";"
+			advice = "Advice: " + auto[0].upper() + auto[1:] + "."
 		response = self.ui.prompt(choices, advice)
 		if response == 'h':
 			return self.HIT;
@@ -115,7 +121,10 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		
 		# Save user info
 		if len(self.user) > 0:
-			self.users.save(self.user, self.get_bankroll(), self.get_starting_bet(), self.advise)
+			card_counting_strategy = self.NONE
+			if self.card_counting_strategy != None:
+				card_counting_strategy = self.card_counting_strategy.get_card_counting_strategy()
+			self.users.save(self.user, self.get_bankroll(), self.get_starting_bet(), self.advise, card_counting_strategy)
 
 	def run(self):
 		# Main game loop
@@ -132,7 +141,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 				break
 			else:
 				deal = False
-				if response == 'v':
+				if response == 'n':
 					bet = self.ui.int_prompt("Enter new bet", "Error: Bad bet entered!", self.get_rules().get_minimum_bet(), self.get_rules().get_maximum_bet(), "$")
 					self.set_starting_bet(bet)
 					deal = True
