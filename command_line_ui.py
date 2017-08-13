@@ -91,3 +91,23 @@ class CommandLineUI:
 			except ValueError:
 				pass
 			print(error)
+
+	def list_prompt(self, text, error, list):
+		if len(list) == 0:
+			print("Error: Empty list!")
+			return -1
+		else:
+			while True:
+				i = 1
+				for choice in list:
+					print("   " + str(i) + ". " + list[i - 1])
+					i = i + 1
+				prompt = "[ " + text + " ] "
+				response = input(prompt)
+				try:
+					index = int(response) - 1
+					if index >= 0 and index < len(list):
+						return index
+				except ValueError:
+						pass
+				print(error)

@@ -1,23 +1,13 @@
-import csv
-
 from logging import *
 from configuration import Configuration
+from card_counting import CardCounting
 
 from blackjack_game_framework import BlackjackGameFramework
 
 class BlackjackAutoGame(BlackjackGameFramework):
-	AUTO_DOUBLE = 2
-	AUTO_HIT = 1
-	AUTO_STAND = 0
-	AUTO_SURRENDER = -1
-	AUTO_SPLIT = 1
-	
 	STANDARD_STRATEGY = "standard_strategy"
 	
-	STANDARD_BETTING_STRATEGY = "standard_betting_strategy"
-	FIVE_FOLD_BETTING_STRATEGY = "five_fold_betting_strategy"
-	
-	def __init__(self, log, auto_section = "DEFAULT"):
+	def __init__(self, log, auto_section = "Blackjack"):
 		# Initialize log
 		self.log = log
 		
@@ -27,9 +17,9 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		self.number_of_hands = configuration.readInt("NumberOfHands", 100)
 		self.starting_bankroll = configuration.readInt("StartingBankroll", 500)
 		self.starting_bet = configuration.readInt("StartingBet", 1)
-		self.rules = configuration.readString("BlackJackRules", "DEFAULT")
-		self.strategy_file = configuration.readString("StrategyFile", "standard_strategy.csv")
-		self.betting_strategy = configuration.readString("BettingStrategy", self.STANDARD_BETTING_STRATEGY)
+		self.rules_name = configuration.readString("BlackJackRules", "Blackjack")
+		self.strategy_file = configuration.readString("StrategyFile", self.STANDARD_STRATEGY_FILENAME)
+		self.card_counting_strategy_name = configuration.readString("CardCountingStrategy", "Blackjack")
 		
 		# Stats
 		self.ending_bankrolls = []
@@ -39,36 +29,14 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		# Initialize variables
 		self.hand_number = 0
 
-		# Initialize strategies
-		self.strategy_filenames = { }
-		self.strategy_filenames[self.STANDARD_STRATEGY] = "standard_strategy.csv"
-		self.strategies = { }
-
 		# Load strategies
-		for strategy_name in self.strategy_filenames.keys():
-			filename = self.strategy_filenames[strategy_name]
-			strategy = self.load_strategy(filename)
-			self.strategies[strategy_name] = strategy				
-		self.strategy = self.strategies[self.STANDARD_STRATEGY]
+		self.strategy = self.load_strategy(self.strategy_file)
 
 		# Initialize framework
-		BlackjackGameFramework.__init__(self, log, self.starting_bankroll, self.starting_bet)
-
-	def load_strategy(self, filename):
-		strategy = {}
-		with open(filename, newline='') as file:
-			reader = csv.reader(file, delimiter='\t')
-			for row in reader:
-				if row[0].isdigit() and len(row) == 11:
-					key = int(row[0])
-					value = []
-					for i in range(10):
-						try:
-							value.append(int(row[i + 1]))
-						except ValueError:
-							value.append(0)
-					strategy[key] = value
-		return strategy
+		BlackjackGameFramework.__init__(self, log, self.starting_bankroll, self.starting_bet, self.rules_name)
+		
+		# Load counting strategy
+		self.load_card_counting_strategy(self.card_counting_strategy_name)
 
 	def show_hand(self, dealer_hand, show_all_cards = False):
 		if dealer_hand == False:
@@ -84,32 +52,7 @@ class BlackjackAutoGame(BlackjackGameFramework):
 				self.log.fine("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[1])) + ", Player total: " + player_total_string)
 	
 	def decide_hand(self, choices):
-		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
-		if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and self.SPLIT in choices:
-			player_rank = self.calc_rank(self.get_player_hand()[0])
-			self.log.finest("Possible auto split: player rank=" + str(player_rank) + ", dealer up rank=" + str(dealer_up_rank))
-			action = self.strategy[200 + player_rank][dealer_up_rank - 1]
-			if action == self.AUTO_SPLIT:
-				return self.SPLIT
-		player_total = self.calc_highest_total(self.get_player_hand())
-		if player_total < 21:
-			if player_total != self.calc_lowest_total(self.get_player_hand()):
-				action = self.strategy[100 + player_total][dealer_up_rank - 1]
-			else:
-				if player_total < 9:
-					action = self.AUTO_HIT
-				else:
-					action = self.strategy[player_total][dealer_up_rank - 1]
-					self.log.finest("Strategy action=" + str(action))
-			if action > self.AUTO_STAND:
-				if action > self.AUTO_HIT and self.DOUBLE in choices:
-					return self.DOUBLE
-				return self.HIT
-			elif action == self.AUTO_SURRENDER:
-				if self.SURRENDER in choices:
-					return self.SURRENDER
-				return self.HIT
-		return self.STAND
+		return self.advise_hand(self.strategy, choices)
 
 	def start_hand(self):
 		self.log.fine("   Starting hand #" + str(self.hand_number) + ", bet: $" + str(self.get_current_bet()) + " ...")
@@ -129,8 +72,8 @@ class BlackjackAutoGame(BlackjackGameFramework):
 				if self.get_current_bet() <= self.bankroll:
 					result = self.play_hand()
 					self.set_current_bet(self.get_starting_bet())
-					if self.betting_strategy == self.FIVE_FOLD_BETTING_STRATEGY and result > 0:
-						self.set_current_bet(self.get_starting_bet() * 5)
+					#if self.betting_strategy == self.FIVE_FOLD_BETTING_STRATEGY and result > 0:
+					#	self.set_current_bet(self.get_starting_bet() * 5)
 				else:
 					self.log.fine("   Almost out of money, bankroll: $" + str(self.get_bankroll()))				
 					break
@@ -147,9 +90,9 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		self.log.info("Number of hands: " + str(self.number_of_hands))
 		self.log.info("Starting bankroll: " + str(self.starting_bankroll))
 		self.log.info("Starting bet: " + str(self.starting_bet))
-		self.log.info("Rules: " + str(self.rules))
+		self.log.info("Rules: " + str(self.rules_name))
 		self.log.info("Strategy file: " + str(self.strategy_file))
-		self.log.info("Betting strategy: " + str(self.betting_strategy))
+		self.log.info("Card counting strategy: " + str(self.card_counting_strategy.get_section()))
 		
 		# Print results
 		print("Average ending bankroll: $" + str(sum(self.ending_bankrolls) / len(self.ending_bankrolls)))

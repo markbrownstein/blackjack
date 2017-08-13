@@ -1,6 +1,7 @@
 from logging import *
 from shoe import Shoe
 from blackjack_rules import BlackjackRules
+from event_listener import EventListener
 
 class BlackjackGame:
 	HAND = "hand"
@@ -16,13 +17,14 @@ class BlackjackGame:
 	LOSS_RESULT = -1
 	SURRENDER_RESULT = -2
 	
-	def __init__(self, log, bankroll, rules_section = "DEFAULT"):
+	def __init__(self, log, bankroll, rules_section = "Blackjack"):
 		# Logger
 		self.log = log
 		
 		# Required objects
 		self.rules = BlackjackRules(log, rules_section)
 		self.shoe = Shoe(log, self.rules.get_decks())
+		self.event_listener = EventListener(log)
 		
 		# Variables
 		self.bankroll = bankroll
@@ -53,6 +55,9 @@ class BlackjackGame:
 		
 	def get_player_hand_number(self):
 		return self.player_hand[self.NUMBER]
+		
+	def set_event_listener(self, event_listener):
+		self.event_listener = event_listener
 
 	def can_double_down(self, hand, bet):
 		can = False
@@ -150,8 +155,11 @@ class BlackjackGame:
 			self.insurance = insurance
 			return True
 		return False
+		
+	def make_dealer_hole_card_visible(self):
+		self.event_listener.event("card", self.dealer_hand[0])
 
-	def deal_card(self):
+	def deal_card(self, visible = True):
 		card = self.shoe.deal()
 		if card == "":
 			self.need_to_shuffle = True
@@ -159,7 +167,10 @@ class BlackjackGame:
 			if card == "":
 				self.log.warning("Shoe empty! Shuffling when not supposed to!")
 				self.shoe.shuffle()
+				self.event_listener.event("shuffle", "")
 				card = self.shoe.deal()
+		if visible == True:
+			self.event_listener.event("card", card)
 		return card
 
 	def deal_card_to_dealer(self):
@@ -180,7 +191,8 @@ class BlackjackGame:
 		if self.need_to_shuffle:
 			self.need_to_shuffle = False
 			self.shoe.shuffle()
-		
+			self.event_listener.event("shuffle", "")
+			
 		# Setup hands
 		self.dealer_hand = []
 		self.dealer_bust = False
@@ -191,7 +203,7 @@ class BlackjackGame:
 		
 		# Deal hands
 		self.player_hand[self.HAND].append(self.deal_card())
-		self.dealer_hand.append(self.deal_card())
+		self.dealer_hand.append(self.deal_card(False))
 		self.player_hand[self.HAND].append(self.deal_card())
 		self.dealer_hand.append(self.deal_card())
 	

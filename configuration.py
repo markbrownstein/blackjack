@@ -6,13 +6,23 @@ class Configuration:
 	def __init__(self, log, filename, section = "DEFAULT"):
 		# Initialize and read INI file
 		self.log = log
-		self.section = section
+
+		# Load and read config file
 		self.config = ConfigParser()
 		self.config.read(filename)
+		
+		# Load section
+		self.load_section(section)
+
+	def load_section(self, section):
+		self.section = section
 		self.log.finest(self.config.sections())
-		if section != "DEFAULT" and not section in self.config.sections():
-			self.log.severe("Can't find configuration file: " + filename + " and/or section: " + section)
+		if not section in self.config:
+			self.log.severe("Error: Can't find configuration file: " + filename + " and/or section: " + section)
 			exit()
+
+	def get_section(self):
+		return self.section
 
 	def readString(self, key, default):
 		value = default

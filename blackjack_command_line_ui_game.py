@@ -1,10 +1,13 @@
 from logging import *
 from command_line_ui import CommandLineUI
+from card_counting import CardCounting
 from users import Users
 from blackjack_game_framework import BlackjackGameFramework
 
 class BlackjackCommandLineUIGame(BlackjackGameFramework):
-	def __init__(self, log, rules_section = "DEFAULT"):
+	NONE = "None"
+	
+	def __init__(self, log, rules_section = "Blackjack"):
 		# Initialize log
 		self.log = log
 
@@ -14,8 +17,11 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		# Load user
 		bankroll = 500
 		starting_bet = 5
+		self.advise = False
 		self.user = ""
 		self.users = False
+		self.strategy = False
+		self.card_counting_strategy = None
 		while True:
 			response = self.ui.prompt(["guest", "login", "new user"], "Play as ")
 			if response == 'g':
@@ -27,8 +33,9 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 					password = self.ui.string_prompt("password")
 					if self.users.login(user, password):
 						self.user = user
-						bankroll = self.users.get_bankroll(self.user)
-						starting_bet = self.users.get_starting_bet(self.user)
+						bankroll = self.users.get_bankroll()
+						starting_bet = self.users.get_starting_bet()
+						self.advise = self.users.get_advise()
 						break
 					else:
 						print("Error: Login failed!")
@@ -40,7 +47,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 							print("Error: User " + user + " already exists!")
 						else:
 							self.user = user
-							self.users.save_new_user(user, password, bankroll, starting_bet)
+							self.users.save_new_user(user, password, bankroll, starting_bet, self.advise)
 							break
 					break
 
@@ -84,7 +91,13 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		return self.ui.double_prompt("Enter insurance amount", "Error: bad insurance amount", 0, self.get_current_bet() / 2, '$')
 
 	def decide_hand(self, choices):
-		response = self.ui.prompt(choices)
+		advice = ""
+		if self.advise:
+			if self.strategy == False:
+				self.strategy = self.load_strategy(self.STANDARD_STRATEGY_FILENAME)
+			auto = self.advise_hand(self.strategy, choices)
+			advice = "Advice: " + auto[0].upper() + auto[1:] + ";"
+		response = self.ui.prompt(choices, advice)
 		if response == 'h':
 			return self.HIT;
 		if response == 'd':
@@ -102,7 +115,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		
 		# Save user info
 		if len(self.user) > 0:
-			self.users.save(self.user, self.get_bankroll(), self.get_starting_bet())
+			self.users.save(self.user, self.get_bankroll(), self.get_starting_bet(), self.advise)
 
 	def run(self):
 		# Main game loop
@@ -114,17 +127,41 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 				stat_line = stat_line + "Guest"
 			stat_line = stat_line + ", Cash: $" + str(self.get_bankroll()) + ", Bet: $" + str(self.get_starting_bet())
 			print(stat_line)
-			response = self.ui.prompt(["continue", "new bet", "quit"])
+			response = self.ui.prompt(["continue", "new bet", "options", "quit"])
 			if response == 'q':
 				break
 			else:
 				deal = False
-				if response == 'n':
+				if response == 'v':
 					bet = self.ui.int_prompt("Enter new bet", "Error: Bad bet entered!", self.get_rules().get_minimum_bet(), self.get_rules().get_maximum_bet(), "$")
 					self.set_starting_bet(bet)
 					deal = True
 				elif response == 'c':
 					deal = True
+				elif response == 'o':
+					while True:
+						response = self.ui.prompt(["back", "advise", "card counting strategy"], "Set option:")
+						if response == 'b':
+							break
+						elif response == 'a':
+							response = self.ui.yesno_prompt("Advise (current setting = " + str(self.advise) + "): ")
+							if response == 'y':
+								self.advise = True
+							else:
+								self.advise = False
+						elif response == 'c':
+							card_counting_strategy = self.NONE
+							if self.card_counting_strategy != None:
+								card_counting_strategy = self.card_counting_strategy.get_card_counting_strategy()
+							list = CardCounting(self.log).list_card_counting_strategies()
+							if not self.NONE in list:
+								list.append(self.NONE)
+							index = self.ui.list_prompt("Choose strategy from list (current setting = " + card_counting_strategy + ")", "Error: Invalid choice!", list)
+							card_counting_strategy = list[index]
+							if card_counting_strategy == self.NONE:
+								self.card_counting_strategy = None
+							else:
+								self.load_card_counting_strategy(card_counting_strategy)
 				if deal == True:
 					self.set_current_bet(self.get_starting_bet())
 					self.play_hand()

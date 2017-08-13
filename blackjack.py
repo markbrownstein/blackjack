@@ -37,7 +37,7 @@ if __name__=="__main__":
 		log = Logging(LogSource.PRINT, log_level)
 
 		# Read INI section from command line
-		section = "DEFAULT"
+		section = "Blackjack"
 		if len(sys.argv) > 3:
 			section = sys.argv[3]
 		
@@ -51,4 +51,4 @@ if __name__=="__main__":
 			game = BlackjackAutoGame(log, section)
 			game.run()
 	if print_intructions == True:
-		print("Usage: blackjack.py [ ui|auto ] { none|severe|warning|info|fine|finer|finest } { DEFAULT }")
+		print("Usage: blackjack.py [ ui|auto ] { none|severe|warning|info|fine|finer|finest } { Blackjack }")

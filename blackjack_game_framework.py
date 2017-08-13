@@ -1,19 +1,32 @@
+import csv
+
 from logging import *
+from card_counting import CardCounting
 from blackjack_game import BlackjackGame
 
 class BlackjackGameFramework(BlackjackGame):
+	STANDARD_STRATEGY_FILENAME = "standard_strategy.csv"
+
 	STAND = "stand"
 	HIT = "hit"
 	DOUBLE = "double down"
 	SPLIT = "split"
+
 	YES = "yes"
 	NO = "no"
 	
-	def __init__(self, log, bankroll, starting_bet, rules_section = "DEFAULT"):
+	ADVISE_DOUBLE = 2
+	ADVISE_HIT = 1
+	ADVISE_STAND = 0
+	ADVISE_SURRENDER = -1
+	ADVISE_SPLIT = 1
+	
+	def __init__(self, log, bankroll, starting_bet, rules_section = "Blackjack"):
 		self.log = log
 		BlackjackGame.__init__(self, log, bankroll, rules_section)
 		self.starting_bet = starting_bet
 		self.current_bet = self.starting_bet
+		self.card_counting_strategy = None
 
 	def get_starting_bet(self):
 		return self.starting_bet
@@ -41,6 +54,59 @@ class BlackjackGameFramework(BlackjackGame):
 			result_text = "Player SURRENDERS!"
 			
 		return result_text
+
+	def get_card_counting_strategy(self):
+		return self.card_counting_strategy
+
+	def load_strategy(self, filename):
+		strategy = {}
+		with open(filename, newline='') as file:
+			reader = csv.reader(file, delimiter='\t')
+			for row in reader:
+				if row[0].isdigit() and len(row) == 11:
+					key = int(row[0])
+					value = []
+					for i in range(10):
+						try:
+							value.append(int(row[i + 1]))
+						except ValueError:
+							value.append(0)
+					strategy[key] = value
+		return strategy
+
+	def load_card_counting_strategy(self, card_counting_strategy):
+		self.log.finer("Loading card counting strategy: " + card_counting_strategy + " ...")
+		self.card_counting_strategy = CardCounting(self.log, card_counting_strategy)
+		self.set_event_listener(self.card_counting_strategy)
+		self.log.finer("... finished loading card counting strategy: " + card_counting_strategy)
+		
+	def advise_hand(self, strategy, choices):
+		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
+		if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and self.SPLIT in choices:
+			player_rank = self.calc_rank(self.get_player_hand()[0])
+			self.log.finest("Possible auto split: player rank=" + str(player_rank) + ", dealer up rank=" + str(dealer_up_rank))
+			action = strategy[200 + player_rank][dealer_up_rank - 1]
+			if action == self.ADVISE_SPLIT:
+				return self.SPLIT
+		player_total = self.calc_highest_total(self.get_player_hand())
+		if player_total < 21:
+			if player_total != self.calc_lowest_total(self.get_player_hand()):
+				action = strategy[100 + player_total][dealer_up_rank - 1]
+			else:
+				if player_total < 9:
+					action = self.ADVISE_HIT
+				else:
+					action = strategy[player_total][dealer_up_rank - 1]
+					self.log.finest("Strategy action=" + str(action))
+			if action > self.ADVISE_STAND:
+				if action > self.ADVISE_HIT and self.DOUBLE in choices:
+					return self.DOUBLE
+				return self.HIT
+			elif action == self.ADVISE_SURRENDER:
+				if self.SURRENDER in choices:
+					return self.SURRENDER
+				return self.HIT
+		return self.STAND
 
 	def show_hand(self, dealer_hand, show_all_cards = True):
 		pass
@@ -120,6 +186,9 @@ class BlackjackGameFramework(BlackjackGame):
 					self.show_hand(True)
 				else:
 					break				
+		# Make sure dealer card is flagged as visible
+		self.make_dealer_hole_card_visible()
+		
 		# See if dealer needs cards
 		while True:
 			if self.is_dealer_hand_over():
