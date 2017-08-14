@@ -141,11 +141,10 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			print(stat_line)
 
 			# Print card counting stats if a card counting strategy has been selected
-			card_counting_strategy = self.NONE
-			if self.card_counting_strategy != None:
-				stat_line = "Count: " + str(self.card_counting_strategy.get_count())
-				if self.card_counting_strategy.is_using_true_count():
-					stat_line = stat_line + ", True count: " + str(self.card_counting_strategy.get_true_count())
+			if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_counting_method():
+				stat_line = self.get_card_counting_strategy().get_counting_method() + ", Count: " + str(self.get_card_counting_strategy().get_count())
+				if self.get_card_counting_strategy().is_using_true_count():
+					stat_line = stat_line + ", True count: " + str(self.get_card_counting_strategy().get_true_count())
 				print(stat_line)
 
 			# Show main menu

@@ -47,14 +47,31 @@ class BlackjackAutoGame(BlackjackGameFramework):
 			else:
 				player_total_string = str(soft_player_total) + " or " + str(player_total)
 			if show_all_cards == True:
-				self.log.fine("      Dealer total: " + str(self.calc_highest_total(self.get_dealer_hand())) + ", Player total: " + player_total_string)
+				self.log.finer("      Dealer total: " + str(self.calc_highest_total(self.get_dealer_hand())) + ", Player total: " + player_total_string)
 			else:
-				self.log.fine("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[1])) + ", Player total: " + player_total_string)
+				self.log.finer("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[1])) + ", Player total: " + player_total_string)
 	
 	def decide_hand(self, choices):
 		return self.advise_hand(self.strategy, choices)
 
 	def start_hand(self):
+		self.set_bet_multiplier(1.0)
+		if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_counting_method():
+			if self.get_card_counting_strategy().is_using_true_count():
+				count = self.get_card_counting_strategy().get_true_count()
+			else:
+				count = self.get_card_counting_strategy().get_count()
+			count_stats = "   Count: " + str(count)
+			if count >= self.get_card_counting_strategy().get_count_threshold():
+				multiplier = self.get_card_counting_strategy().get_betting_high()
+				#multiplier = self.get_card_counting_strategy().get_betting_step()
+				self.set_bet_multiplier(multiplier)
+				count_stats = count_stats + ", Multiplier: " + str(multiplier)
+			self.log.fine(count_stats)
+		current_bet = self.get_starting_bet() * self.get_bet_multiplier()
+		if current_bet > self.get_bankroll():
+			current_bet = self.get_bankroll()
+		self.set_current_bet(current_bet)
 		self.log.fine("   Starting hand #" + str(self.hand_number) + ", bet: $" + str(self.get_current_bet()) + " ...")
 		
 	def end_hand(self, results):
@@ -65,8 +82,16 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		# Start games
 		for game_number in range(self.number_of_games):
 			self.log.fine("Starting game #" + str(game_number + 1) + " ...")
+			
+			# If we're counting cards, reset count and multiplier
+			if self.get_card_counting_strategy() != None:
+				self.get_card_counting_strategy().reset_count()
+				
+			# Reset other variables	
 			self.bankroll = self.starting_bankroll
 			self.set_current_bet(self.get_starting_bet())
+			
+			# Play the hands
 			for hand_number in range(self.number_of_hands):
 				self.hand_number = hand_number + 1
 				if self.get_current_bet() <= self.bankroll:
@@ -93,6 +118,9 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		self.log.info("Rules: " + str(self.rules_name))
 		self.log.info("Strategy file: " + str(self.strategy_file))
 		self.log.info("Card counting strategy: " + str(self.card_counting_strategy.get_section()))
+		self.log.info("Average ending bankroll: $" + str(sum(self.ending_bankrolls) / len(self.ending_bankrolls)))
+		self.log.info("Minimum ending bankroll: $" + str(self.min_ending_bankroll))
+		self.log.info("Maximum ending bankroll: $" + str(self.max_ending_bankroll))
 		
 		# Print results
 		print("Average ending bankroll: $" + str(sum(self.ending_bankrolls) / len(self.ending_bankrolls)))

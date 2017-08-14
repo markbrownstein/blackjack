@@ -10,8 +10,13 @@ class CardCounting(Configuration, EventListener):
 	
 	# Counting method
 	TRUE_COUNT = "true_count"
+	COUNT_THRESHOLD = "count_threshold"
 	RANK_DICTIONARY = { "A": "ace", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine", "T": "ten", "J": "jack", "Q": "queen", "K": "king" }
 	
+	# Betting method
+	HIGH = "high"
+	STEP = "step"
+
 	def __init__(self, log, decks, card_counting_strategy_section = "Blackjack"):
 		# Initialize variables
 		self.decks = decks
@@ -93,6 +98,21 @@ class CardCounting(Configuration, EventListener):
 		if self.counting_method != None:
 			return self.read_boolean(self.TRUE_COUNT, False, self.counting_method)
 		return False
+		
+	def get_count_threshold(self):
+		if self.betting_method != None:
+			return self.read_double(self.COUNT_THRESHOLD, 0.0, self.counting_method)
+		return 0.0
+	
+	def get_betting_high(self):
+		if self.betting_method != None:
+			return self.read_double(self.HIGH, 1.0, self.betting_method)
+		return 1.0
+	
+	def get_betting_step(self):
+		if self.betting_method != None:
+			return self.read_double(self.HIGH, 1.0, self.betting_method)
+		return 0.0
 		
 	def list_card_counting_strategies(self):
 		list = []
