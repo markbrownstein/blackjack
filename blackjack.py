@@ -1,6 +1,6 @@
 import sys
 
-from logging import *
+from common_logging import *
 
 from blackjack_command_line_ui_game import BlackjackCommandLineUIGame
 from blackjack_auto_game import BlackjackAutoGame
@@ -34,7 +34,6 @@ if __name__=="__main__":
 				log_level = 5
 			elif FINEST == sys.argv[2].lower():
 				log_level = 6
-		log = Logging(LogSource.PRINT, log_level)
 
 		# Read INI section from command line
 		section = "Blackjack"
@@ -43,10 +42,12 @@ if __name__=="__main__":
 		
 		# Run game
 		if UI == sys.argv[1].lower():
+			log = Logging(LogSource.PRINT, log_level)
 			print_intructions = False
 			game = BlackjackCommandLineUIGame(log, section)
 			game.run()
 		elif AUTO == sys.argv[1].lower():
+			log = Logging(LogSource.FILE, log_level, "blackjack.log")
 			print_intructions = False
 			game = BlackjackAutoGame(log, section)
 			game.run()

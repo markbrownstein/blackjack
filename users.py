@@ -1,4 +1,4 @@
-from logging import *
+from common_logging import *
 from configuration import Configuration
 
 class Users(Configuration):

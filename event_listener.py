@@ -1,4 +1,4 @@
-from logging import *
+from common_logging import *
 
 class EventListener:
 	def __init__(self, log):

@@ -1,15 +1,20 @@
-from logging import *
+from common_logging import *
 from configuration import Configuration
 from event_listener import EventListener
 
 class CardCounting(Configuration, EventListener):
+	# Methods
 	COUNTING_METHOD = "counting_method"
 	BETTING_METHOD = "betting_method"
 	PLAYING_METHOD = "playing_method"
 	
+	# Counting method
 	RANK_DICTIONARY = { "A": "ace", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine", "T": "ten", "J": "jack", "Q": "queen", "K": "king" }
 	
-	def __init__(self, log, card_counting_strategy_section = "Blackjack"):
+	def __init__(self, log, decks, card_counting_strategy_section = "Blackjack"):
+		# Initialize variables
+		self.decks = decks
+		
 		# Initialize and read INI file
 		Configuration.__init__(self, log, "card_counting.ini", card_counting_strategy_section)
 
@@ -68,6 +73,12 @@ class CardCounting(Configuration, EventListener):
 	def get_card_counting_strategy(self):
 		return self.section
 		
+	def get_count(self):
+		return self.count
+		
+	def get_true_count(self):
+		return self.count / self.decks
+		
 	def get_counting_method(self):
 		return self.counting_method
 		
@@ -80,14 +91,14 @@ class CardCounting(Configuration, EventListener):
 	def list_card_counting_strategies(self):
 		list = []
 		for section in self.config.sections():
-			#if self.config.has_option(section, self.COUNTING_METHOD):
-			if self.config.has_option(section, self.COUNTING_METHOD) == True:
+			if section != "Blackjack" and self.config.has_option(section, self.COUNTING_METHOD):
 				list.append(section)
 		return list
 		
 	def reset_count(self):
-		self.count = 0
-		self.aces_count = 0
+		self.count = 0.0
+		#self.aces_count = 0
+		self.log.info("Reset count")
 		
 	def do_count(self, card):
 		if self.counting_method != None:

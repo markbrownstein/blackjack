@@ -1,5 +1,6 @@
 import random
-from logging import *
+
+from common_logging import *
 
 class Shoe:
 	RANKS = [ 'A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K' ]

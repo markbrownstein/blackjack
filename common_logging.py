@@ -1,3 +1,5 @@
+import logging
+
 class LogLevel:
 	NONE = 0
 	SEVERE = 1
@@ -10,11 +12,17 @@ class LogLevel:
 class LogSource:
 	NONE = 0
 	PRINT = 1
+	FILE = 2
 
 class Logging:
-	def __init__(self, log_source, log_level):
+	def __init__(self, log_source, log_level, file = ""):
 		self.log_source = log_source
 		self.log_level = log_level
+		if self.log_source == LogSource.FILE:
+			logging.basicConfig(filename = file, level = logging.INFO)
+			self.logger = logger = logging.getLogger(__name__)
+		else:
+			self.logger = None
 
 	def log(self, log_level, text):
 		if self.log_source != LogSource.NONE:
@@ -32,12 +40,11 @@ class Logging:
 				else:
 					log_level_text = "Finest: "
 				
-				if isinstance(text, str):
-					print(log_level_text + text)
-				else:
-					print(log_level_text)
-					print(text)
-	
+				if self.log_source == LogSource.PRINT:
+					print(log_level_text + str(text))
+				elif self.log_source == LogSource.FILE:
+					self.logger.info(log_level_text + str(text))
+					
 	def severe(self, text):
 		self.log(LogLevel.SEVERE, text)
 

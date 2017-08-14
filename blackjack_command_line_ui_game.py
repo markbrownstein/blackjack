@@ -1,4 +1,4 @@
-from logging import *
+from common_logging import *
 from command_line_ui import CommandLineUI
 from card_counting import CardCounting
 from users import Users
@@ -31,7 +31,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 				self.users = Users(self.log)
 				if response == 'l':
 					user = self.ui.string_prompt("user name")
-					password = self.ui.string_prompt("password")
+					password = self.ui.string_prompt("password", True)
 					if self.users.login(user, password):
 						self.user = user
 						bankroll = self.users.get_bankroll()
@@ -129,29 +129,46 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 	def run(self):
 		# Main game loop
 		while True:
+			# Print stat line with cash and current bet
 			stat_line = "\n"
 			if len(self.user) > 0:
 				stat_line = stat_line + self.user
 			else:
 				stat_line = stat_line + "Guest"
 			stat_line = stat_line + ", Cash: $" + str(self.get_bankroll()) + ", Bet: $" + str(self.get_starting_bet())
+			if self.get_bet_multiplier() != 1.0:
+				stat_line = stat_line + ", Multiplier: " + str(self.get_bet_multiplier())
 			print(stat_line)
-			response = self.ui.prompt(["continue", "new bet", "options", "quit"])
+
+			# Print card counting stats if a card counting strategy has been selected
+			card_counting_strategy = self.NONE
+			if self.card_counting_strategy != None:
+				stat_line = "Count: " + str(self.card_counting_strategy.get_count())
+				stat_line = stat_line + ", True count: " + str(self.card_counting_strategy.get_true_count())
+				print(stat_line)
+
+			# Show main menu
+			response = self.ui.prompt(["continue", "bet multiplier", "options", "quit"])
 			if response == 'q':
 				break
 			else:
 				deal = False
-				if response == 'n':
-					bet = self.ui.int_prompt("Enter new bet", "Error: Bad bet entered!", self.get_rules().get_minimum_bet(), self.get_rules().get_maximum_bet(), "$")
-					self.set_starting_bet(bet)
-					deal = True
+				if response == 'b':
+					min = self.get_rules().get_minimum_bet() / self.get_starting_bet()
+					max = self.get_rules().get_maximum_bet() / self.get_starting_bet()
+					multiplier = self.ui.double_prompt("Enter bet multiplier (current multiplier = " + str(self.get_bet_multiplier()) + "): ", "Error: Bad multiplier entered!", min, max)
+					self.set_bet_multiplier(multiplier)
 				elif response == 'c':
 					deal = True
 				elif response == 'o':
 					while True:
-						response = self.ui.prompt(["back", "advise", "card counting strategy"], "Set option:")
+						response = self.ui.prompt(["back", "new bet", "advise", "counting strategy"], "Set option:")
 						if response == 'b':
 							break
+						elif response == 'n':
+							bet = self.ui.int_prompt("Enter new bet (current bet = $" + str(self.get_starting_bet()) + "): ", "Error: Bad bet entered!", self.get_rules().get_minimum_bet(), self.get_rules().get_maximum_bet(), "$")
+							self.set_starting_bet(bet)
+							self.set_bet_multiplier(1.0)
 						elif response == 'a':
 							response = self.ui.yesno_prompt("Advise (current setting = " + str(self.advise) + "): ")
 							if response == 'y':
@@ -162,9 +179,9 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 							card_counting_strategy = self.NONE
 							if self.card_counting_strategy != None:
 								card_counting_strategy = self.card_counting_strategy.get_card_counting_strategy()
-							list = CardCounting(self.log).list_card_counting_strategies()
+							list = CardCounting(self.log, 1).list_card_counting_strategies()
 							if not self.NONE in list:
-								list.append(self.NONE)
+								list.insert(0, self.NONE)
 							index = self.ui.list_prompt("Choose strategy from list (current setting = " + card_counting_strategy + ")", "Error: Invalid choice!", list)
 							card_counting_strategy = list[index]
 							if card_counting_strategy == self.NONE:
@@ -172,5 +189,5 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 							else:
 								self.load_card_counting_strategy(card_counting_strategy)
 				if deal == True:
-					self.set_current_bet(self.get_starting_bet())
+					self.set_current_bet(self.get_starting_bet() * self.get_bet_multiplier())
 					self.play_hand()

@@ -1,6 +1,6 @@
 import csv
 
-from logging import *
+from common_logging import *
 from card_counting import CardCounting
 from blackjack_game import BlackjackGame
 
@@ -26,6 +26,7 @@ class BlackjackGameFramework(BlackjackGame):
 		BlackjackGame.__init__(self, log, bankroll, rules_section)
 		self.starting_bet = starting_bet
 		self.current_bet = self.starting_bet
+		self.bet_multiplier = 1.0
 		self.card_counting_strategy = None
 
 	def get_starting_bet(self):
@@ -39,6 +40,12 @@ class BlackjackGameFramework(BlackjackGame):
 		
 	def set_current_bet(self, current_bet):
 		self.current_bet = current_bet
+	
+	def get_bet_multiplier(self):
+		return self.bet_multiplier
+		
+	def set_bet_multiplier(self, bet_multiplier):
+		self.bet_multiplier = bet_multiplier
 	
 	def get_result_text(self, result):
 		result_text = ""
@@ -76,7 +83,7 @@ class BlackjackGameFramework(BlackjackGame):
 
 	def load_card_counting_strategy(self, card_counting_strategy):
 		self.log.finer("Loading card counting strategy: " + card_counting_strategy + " ...")
-		self.card_counting_strategy = CardCounting(self.log, card_counting_strategy)
+		self.card_counting_strategy = CardCounting(self.log, self.get_rules().get_decks(), card_counting_strategy)
 		self.set_event_listener(self.card_counting_strategy)
 		self.log.finer("... finished loading card counting strategy: " + card_counting_strategy)
 		

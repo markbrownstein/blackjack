@@ -1,4 +1,4 @@
-from logging import *
+from common_logging import *
 
 class CommandLineUI:
 	HEADER = '\033[95m'
@@ -64,9 +64,8 @@ class CommandLineUI:
 	def noyes_prompt(self, text = ""):
 		return self.prompt(["no", "yes"], text)
 
-	def string_prompt(self, text):
-		prompt = "Enter " + text + ": "
-		return input(prompt)
+	def string_prompt(self, text, is_password = False):		
+		return input("Enter " + text + ": ")
 
 	def int_prompt(self, text, error, min, max, prefix = ''):
 		prompt = "[ " + text + " between " + prefix + str(min) + " and " + prefix + str(max) + " ] "
@@ -104,10 +103,13 @@ class CommandLineUI:
 					i = i + 1
 				prompt = "[ " + text + " ] "
 				response = input(prompt)
-				try:
-					index = int(response) - 1
-					if index >= 0 and index < len(list):
-						return index
-				except ValueError:
-						pass
-				print(error)
+				if not response:
+					return 0
+				else:
+					try:
+						index = int(response) - 1
+						if index >= 0 and index < len(list):
+							return index
+					except ValueError:
+							pass
+					print(error)

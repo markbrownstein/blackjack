@@ -1,4 +1,4 @@
-from logging import *
+from common_logging import *
 from shoe import Shoe
 from blackjack_rules import BlackjackRules
 from event_listener import EventListener

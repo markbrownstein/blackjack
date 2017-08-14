@@ -1,6 +1,7 @@
 from configparser import ConfigParser
-from logging import *
 from sys import exit
+
+from common_logging import *
 
 class Configuration:
 	def __init__(self, log, filename, section = "DEFAULT"):
@@ -16,7 +17,7 @@ class Configuration:
 
 	def load_section(self, section):
 		self.section = section
-		self.log.finest(self.config.sections())
+		#self.log.finest("INI file sections " + str(self.config.sections()))
 		if not section in self.config:
 			self.log.severe("Error: Can't find configuration file: " + filename + " and/or section: " + section)
 			exit()
