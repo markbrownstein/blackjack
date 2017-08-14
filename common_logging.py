@@ -1,4 +1,5 @@
 import logging
+import os
 
 class LogLevel:
 	NONE = 0
@@ -19,6 +20,10 @@ class Logging:
 		self.log_source = log_source
 		self.log_level = log_level
 		if self.log_source == LogSource.FILE:
+			try:
+				os.remove(file)
+			except:
+				pass
 			logging.basicConfig(filename = file, level = logging.INFO)
 			self.logger = logger = logging.getLogger(__name__)
 		else:

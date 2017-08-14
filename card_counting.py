@@ -9,6 +9,7 @@ class CardCounting(Configuration, EventListener):
 	PLAYING_METHOD = "playing_method"
 	
 	# Counting method
+	TRUE_COUNT = "true_count"
 	RANK_DICTIONARY = { "A": "ace", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine", "T": "ten", "J": "jack", "Q": "queen", "K": "king" }
 	
 	def __init__(self, log, decks, card_counting_strategy_section = "Blackjack"):
@@ -33,25 +34,25 @@ class CardCounting(Configuration, EventListener):
 		
 		# Read counting method
 		self.counting_method = None
-		counting_method = Configuration.readString(self, self.COUNTING_METHOD, "")
+		counting_method = Configuration.read_string(self, self.COUNTING_METHOD, "")
 		if counting_method in self.config:
-			self.counting_method = self.config[counting_method]
+			self.counting_method = counting_method
 		elif len(counting_method) > 0:
 			self.log.warning("Error: Couldn't load counting method: " + counting_method)
 
 		# Read betting method
 		self.betting_method = None
-		betting_method = Configuration.readString(self, self.BETTING_METHOD, "")
+		betting_method = Configuration.read_string(self, self.BETTING_METHOD, "")
 		if betting_method in self.config:
-			self.betting_method = self.config[betting_method]
+			self.betting_method = betting_method
 		elif len(betting_method) > 0:
 			self.log.warning("Error: Couldn't load betting method: " + betting_method)
 		
 		# Read playing method
 		self.playing_method = None
-		playing_method = Configuration.readString(self, self.PLAYING_METHOD, "")
+		playing_method = Configuration.read_string(self, self.PLAYING_METHOD, "")
 		if playing_method in self.config:
-			self.playing_method = self.config[playing_method]
+			self.playing_method = playing_method
 		elif len(playing_method) > 0:
 			self.log.warning("Error: Couldn't load playing method: " + playing_method)
 		
@@ -88,6 +89,11 @@ class CardCounting(Configuration, EventListener):
 	def get_playing_method(self):
 		return self.playing_method
 		
+	def is_using_true_count(self):
+		if self.counting_method != None:
+			return self.read_boolean(self.TRUE_COUNT, False, self.counting_method)
+		return False
+		
 	def list_card_counting_strategies(self):
 		list = []
 		for section in self.config.sections():
@@ -103,11 +109,7 @@ class CardCounting(Configuration, EventListener):
 	def do_count(self, card):
 		if self.counting_method != None:
 			key = self.RANK_DICTIONARY[card[0]]
-			if key in self.counting_method:
-				try:
-					self.count = self.count + float(self.counting_method[key])
-				except ValueError:
-					pass
+			self.count = self.count + self.read_double(key, 0.0, self.counting_method)
 			self.log.finer("Current count=" + str(self.count))
 	
 	def event(self, type, data):

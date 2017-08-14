@@ -25,37 +25,44 @@ class Configuration:
 	def get_section(self):
 		return self.section
 
-	def readString(self, key, default):
+	def read_string(self, key, default, section = None):		
 		value = default
-		if key in self.config[self.section]:
-			value = self.config[self.section][key]
+		if section == None:
+			section = self.section
+		if key in self.config[section]:
+			value = self.config[section][key]
 		return value
 
-	def readInt(self, key, default):
+	def read_int(self, key, default, section = None):
 		value = default
-		if key in self.config[self.section]:
-			str_value = self.config[self.section][key]
+		if section == None:
+			section = self.section
+		if key in self.config[section]:
+			str_value = self.config[section][key]
 			if str_value.isdigit():
 				value = int(str_value)
 		return value
 
-	def readDouble(self, key, default):
+	def read_double(self, key, default, section = None):
 		value = default
-		if key in self.config[self.section]:
-			str_value = self.config[self.section][key]
+		if section == None:
+			section = self.section
+		if key in self.config[section]:
+			str_value = self.config[section][key]
 			try:
  				value = float(str_value)
 			except ValueError:
 				pass
 		return value
 
-	def readBoolean(self, key, default):
+	def read_boolean(self, key, default, section = None):
 		value = default
-		if key in self.config[self.section]:
-			str_value = self.config[self.section][key].lower()
+		if section == None:
+			section = self.section
+		if key in self.config[section]:
+			str_value = self.config[section][key].lower()
 			if str_value == "yes" or str_value == "true":
 				value = True
 			elif str_value == "no" or str_value == "false":
 				value = False
 		return value
-

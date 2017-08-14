@@ -144,7 +144,8 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			card_counting_strategy = self.NONE
 			if self.card_counting_strategy != None:
 				stat_line = "Count: " + str(self.card_counting_strategy.get_count())
-				stat_line = stat_line + ", True count: " + str(self.card_counting_strategy.get_true_count())
+				if self.card_counting_strategy.is_using_true_count():
+					stat_line = stat_line + ", True count: " + str(self.card_counting_strategy.get_true_count())
 				print(stat_line)
 
 			# Show main menu

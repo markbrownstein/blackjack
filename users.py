@@ -15,16 +15,16 @@ class Users(Configuration):
 		Configuration.__init__(self, log, self.FILENAME)
 
 	def get_bankroll(self):
-		return self.readDouble(self.BANKROLL, 500)
+		return self.read_double(self.BANKROLL, 500)
 
 	def get_starting_bet(self):
-		return self.readInt(self.STARTING_BET, 1)
+		return self.read_int(self.STARTING_BET, 1)
 
 	def get_advise(self):
-		return self.readBoolean(self.ADVISE, False)
+		return self.read_boolean(self.ADVISE, False)
 
 	def get_card_counting_strategy(self):
-		return self.readString(self.CARD_COUNTING_STRATEGY, False)
+		return self.read_string(self.CARD_COUNTING_STRATEGY, False)
 
 	def login(self, user, password):
 		success = False

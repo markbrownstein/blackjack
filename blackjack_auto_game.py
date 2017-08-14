@@ -13,13 +13,13 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		
 		# Initialize and read INI file
 		configuration = Configuration(log, "auto.ini", auto_section)
-		self.number_of_games = configuration.readInt("NumberOfGames", 1000)
-		self.number_of_hands = configuration.readInt("NumberOfHands", 100)
-		self.starting_bankroll = configuration.readInt("StartingBankroll", 500)
-		self.starting_bet = configuration.readInt("StartingBet", 1)
-		self.rules_name = configuration.readString("BlackJackRules", "Blackjack")
-		self.strategy_file = configuration.readString("StrategyFile", self.STANDARD_STRATEGY_FILENAME)
-		self.card_counting_strategy_name = configuration.readString("CardCountingStrategy", "Blackjack")
+		self.number_of_games = configuration.read_int("NumberOfGames", 1000)
+		self.number_of_hands = configuration.read_int("NumberOfHands", 100)
+		self.starting_bankroll = configuration.read_int("StartingBankroll", 500)
+		self.starting_bet = configuration.read_int("StartingBet", 1)
+		self.rules_name = configuration.read_string("BlackJackRules", "Blackjack")
+		self.strategy_file = configuration.read_string("StrategyFile", self.STANDARD_STRATEGY_FILENAME)
+		self.card_counting_strategy_name = configuration.read_string("CardCountingStrategy", "Blackjack")
 		
 		# Stats
 		self.ending_bankrolls = []
