@@ -4,9 +4,11 @@ from common_logging import *
 
 from blackjack_command_line_ui_game import BlackjackCommandLineUIGame
 from blackjack_auto_game import BlackjackAutoGame
+from blackjack_test_game import BlackjackTestGame
 
 UI = "ui"
 AUTO = "auto"
+TEST = "test"
 
 NONE = "none" # 0
 SEVERE = "severe" # 1
@@ -17,7 +19,7 @@ FINER = "finer" # 5
 FINEST = "finest" # 6
 
 if __name__=="__main__":
-	print_intructions = True
+	print_intructions = False
 	if len(sys.argv) > 1:
 		# Read log level from command line
 		log_level = 0
@@ -36,20 +38,27 @@ if __name__=="__main__":
 				log_level = 6
 
 		# Read INI section from command line
-		section = "Blackjack"
+		if UI == sys.argv[1].lower() or AUTO == sys.argv[1].lower():
+			section = "Blackjack"
+		elif TEST == sys.argv[1].lower():
+			section = "Test"
 		if len(sys.argv) > 3:
 			section = sys.argv[3]
 		
 		# Run game
 		if UI == sys.argv[1].lower():
 			log = Logging(LogSource.PRINT, log_level)
-			print_intructions = False
 			game = BlackjackCommandLineUIGame(log, section)
 			game.run()
 		elif AUTO == sys.argv[1].lower():
 			log = Logging(LogSource.FILE, log_level, "blackjack.log")
-			print_intructions = False
 			game = BlackjackAutoGame(log, section)
 			game.run()
+		elif TEST == sys.argv[1].lower():
+			log = Logging(LogSource.FILE, log_level, "blackjack_test.log")
+			game = BlackjackTestGame(log, section)
+			game.run()
+		else:
+			print_intructions = True
 	if print_intructions == True:
 		print("Usage: blackjack.py [ ui|auto ] { none|severe|warning|info|fine|finer|finest } { Blackjack }")

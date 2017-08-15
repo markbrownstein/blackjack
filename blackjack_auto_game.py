@@ -53,6 +53,9 @@ class BlackjackAutoGame(BlackjackGameFramework):
 			else:
 				self.log.finer("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[1])) + ", Player total: " + player_total_string)
 	
+	def decide_insurance_amount(self):
+		return False
+
 	def decide_hand(self, choices):
 		return self.advise_hand(self.strategy, choices)
 
