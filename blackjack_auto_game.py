@@ -1,3 +1,5 @@
+import math
+
 from common_logging import *
 from configuration import Configuration
 from card_counting import CardCounting
@@ -55,7 +57,7 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		return self.advise_hand(self.strategy, choices)
 
 	def start_hand(self):
-		self.set_bet_multiplier(1.0)
+		current_bet = self.get_starting_bet()
 		if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_counting_method():
 			if self.get_card_counting_strategy().is_using_true_count():
 				count = self.get_card_counting_strategy().get_true_count()
@@ -63,12 +65,25 @@ class BlackjackAutoGame(BlackjackGameFramework):
 				count = self.get_card_counting_strategy().get_count()
 			count_stats = "   Count: " + str(count)
 			if count >= self.get_card_counting_strategy().get_count_threshold():
-				multiplier = self.get_card_counting_strategy().get_betting_high()
-				#multiplier = self.get_card_counting_strategy().get_betting_step()
-				self.set_bet_multiplier(multiplier)
-				count_stats = count_stats + ", Multiplier: " + str(multiplier)
+				# If this is a multiplier,
+				if self.get_card_counting_strategy().get_betting_type() == self.get_card_counting_strategy().MULTIPLIER:
+					# Calc the multiplier by dividing the count by the threshold and multiplying by the step
+					multiplier = self.get_card_counting_strategy().get_betting_step() * math.floor(count / self.get_card_counting_strategy().get_count_threshold())
+					if multiplier > self.get_card_counting_strategy().get_betting_high():
+						multiplier = self.get_card_counting_strategy().get_betting_high()
+					# Apply the multiplier
+					current_bet = self.get_starting_bet() * multiplier
+					count_stats = count_stats + ", Multiplier: " + str(multiplier)
+				# If this is a incremental,
+				elif self.get_card_counting_strategy().get_betting_type() == self.get_card_counting_strategy().INCREMENTAL:
+					# Calc the increment by subtracting the count by the threshold plus one and multiplying by the step
+					increment = self.get_card_counting_strategy().get_betting_step() * math.floor(count - self.get_card_counting_strategy().get_count_threshold() + 1.0)
+					if increment > self.get_card_counting_strategy().get_betting_high():
+						increment = self.get_card_counting_strategy().get_betting_high()
+					# Apply the increment
+					current_bet = self.get_starting_bet() + increment
+					count_stats = count_stats + ", Increment: " + str(increment)
 			self.log.fine(count_stats)
-		current_bet = self.get_starting_bet() * self.get_bet_multiplier()
 		if current_bet > self.get_bankroll():
 			current_bet = self.get_bankroll()
 		self.set_current_bet(current_bet)

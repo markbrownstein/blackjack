@@ -152,6 +152,7 @@ class BlackjackGameFramework(BlackjackGame):
 			self.show_hand(True)
 			# Play each hand
 			while True:
+				# TODO: What if split is blackjack? No need to ask player.
 				# Play hand until stand, bust or double
 				while True:
 					choices = [ self.STAND, self.HIT ]
