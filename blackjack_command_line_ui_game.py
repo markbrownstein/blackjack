@@ -22,7 +22,6 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		self.user = ""
 		self.users = False
 		self.strategy = False
-		#self.card_counting_strategy = None
 		while True:
 			response = self.ui.prompt(["guest", "login", "new user"], "Play as ")
 			if response == 'g':
@@ -49,7 +48,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 							print("Error: User " + user + " already exists!")
 						else:
 							self.user = user
-							self.users.save_new_user(user, password, bankroll, starting_bet, self.advise)
+							self.users.save_new_user(user, password, bankroll, starting_bet, self.advise, "None")
 							break
 					break
 
