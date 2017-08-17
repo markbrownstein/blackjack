@@ -93,7 +93,12 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		return self.NO
 
 	def decide_insurance_amount(self):
-		return self.ui.double_prompt("Enter insurance amount", "Error: bad insurance amount", 0, self.get_current_bet() / 2, '$')
+		max = self.get_current_bet() / 2
+		if max > self.get_bankroll() - self.get_current_bet():
+			max = self.get_bankroll() - self.get_current_bet()
+		if max <= 0:
+			return 0.0
+		return self.ui.double_prompt("Enter insurance amount", "Error: bad insurance amount", 0, max, '$')
 
 	def decide_hand(self, choices):
 		advice = ""

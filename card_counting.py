@@ -43,6 +43,7 @@ class CardCounting(Configuration, EventListener):
 		# Read counting method
 		self.counting_method = None
 		counting_method = Configuration.read_string(self, self.COUNTING_METHOD, "")
+		self.log.info("Counting method: " + counting_method)
 		if counting_method in self.config:
 			self.counting_method = counting_method
 		elif len(counting_method) > 0:
@@ -51,6 +52,7 @@ class CardCounting(Configuration, EventListener):
 		# Read betting method
 		self.betting_method = None
 		betting_method = Configuration.read_string(self, self.BETTING_METHOD, "")
+		self.log.info("Betting method: " + betting_method)
 		if betting_method in self.config:
 			self.betting_method = betting_method
 		elif len(betting_method) > 0:
@@ -58,9 +60,53 @@ class CardCounting(Configuration, EventListener):
 		
 		# Read playing method
 		self.playing_method = None
+		self.playing_method_map = {}
 		playing_method = Configuration.read_string(self, self.PLAYING_METHOD, "")
+		self.log.info("Playing method: " + playing_method)
 		if playing_method in self.config:
 			self.playing_method = playing_method
+
+			# Read playing method list
+			for playing_method in self.config[self.playing_method]:
+				try:
+					s = self.config[self.playing_method][playing_method]
+					s_array = s.split('_')
+					
+					# We need at least 3 (can be insurance_+5_yes => "insurance": ["+5", "yes"] or soft13-16_2-6+5_double => "soft13-16": [ "2-6", "+5", "double" ]
+					if len(s_array) >= 3:
+						# Parse the players hand (could be soft or hard)
+						prefix = ""
+						if s_array[0][0:4].lower() == "soft" or s_array[0][0:4].lower() == "hard":
+							prefix = s_array[0][0:4].lower()
+						left_over = s_array[0][len(prefix):]
+						comma = False
+						index = left_over.find(',')
+						if index >= 0:
+							first = left_over[:index]
+							left_over = left_over[index + 1:]
+							if first != left_over:
+								raise Exception("Pairs don't match")
+							comma = True
+						n_array = []
+						index = left_over.find('-')
+						if index >= 0:
+							first = int(left_over[:index])
+							second = int(left_over[index + 1:])
+							if first >= second:
+								raise Exception("Range backwards")
+							while first <= second:
+								n_array.append(str(first))
+								first = first + 1
+						else:
+							n_array.append(left_over)
+						for n in n_array:
+							if comma:
+								self.playing_method_map[prefix + n + ',' + prefix + n] = s_array[1:]
+							else:
+								self.playing_method_map[prefix + n] = s_array[1:]
+				except Exception as e:
+					self.log.warning("Exception caught reading card counting playing method:" + str(e))
+			#print(self.playing_method_map)
 		elif len(playing_method) > 0:
 			self.log.warning("Error: Couldn't load playing method: " + playing_method)
 		
@@ -75,7 +121,7 @@ class CardCounting(Configuration, EventListener):
 		return True
 		
 	def has_playing_method(self):
-		if self.playing_method == None:
+		if self.playing_method == None or self.playing_method_map == None or len(self.playing_method_map) == 0:
 			return False
 		return True
 		
@@ -88,6 +134,15 @@ class CardCounting(Configuration, EventListener):
 	def get_true_count(self):
 		return self.count / self.decks
 		
+	def get_used_count(self):
+		count = 0.0
+		if self.has_counting_method():
+			if self.is_using_true_count():
+				count = self.get_true_count()
+			else:
+				count = self.get_count()
+		return count
+		
 	def get_counting_method(self):
 		return self.counting_method
 		
@@ -96,6 +151,11 @@ class CardCounting(Configuration, EventListener):
 		
 	def get_playing_method(self):
 		return self.playing_method
+		
+	def get_decision(self, key):
+		if self.playing_method_map != None and key in self.playing_method_map:
+			return self.playing_method_map[key]
+		return None
 		
 	def is_using_true_count(self):
 		if self.counting_method != None:
@@ -138,7 +198,7 @@ class CardCounting(Configuration, EventListener):
 		if self.counting_method != None:
 			key = self.RANK_DICTIONARY[card[0]]
 			self.count = self.count + self.read_double(key, 0.0, self.counting_method)
-			self.log.finer("Current count=" + str(self.count))
+			self.log.finer("Current count=" + str(self.count) + ", current true count=" + str(self.get_true_count()))
 	
 	def event(self, type, data):
 		EventListener.event(self, type, data)

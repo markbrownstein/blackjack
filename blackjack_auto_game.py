@@ -9,6 +9,8 @@ from blackjack_game_framework import BlackjackGameFramework
 class BlackjackAutoGame(BlackjackGameFramework):
 	STANDARD_STRATEGY = "standard_strategy"
 	
+	INSURANCE_DECISION = "insurance"
+	
 	def __init__(self, log, auto_section = "Blackjack"):
 		# Initialize log
 		self.log = log
@@ -53,19 +55,39 @@ class BlackjackAutoGame(BlackjackGameFramework):
 			else:
 				self.log.finer("      Dealer up card: " + str(self.calc_rank(self.get_dealer_hand()[1])) + ", Player total: " + player_total_string)
 	
-	def decide_insurance_amount(self):
-		return False
+	def decide_insurance(self):
+		if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_playing_method():
+			decision = self.get_card_counting_strategy().get_decision(self.INSURANCE_DECISION)
+			if decision != None:
+				self.log.finest("Insurance decision: " + str(decision))
+				if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_counting_method():
+					count = self.get_card_counting_strategy().get_used_count()
+					try:
+						threshold = float(decision[0])
+						if count >= threshold and (decision[1].lower() == "yes" or decision[1].lower() == "true"):
+							return self.YES
+					except:
+						self.log.warning("Bad decision threshold: " + decision[0])
+		return self.NO
 
+	def decide_insurance_amount(self):
+		max = self.get_current_bet() / 2
+		if max > self.get_bankroll() - self.get_current_bet():
+			max = self.get_bankroll() - self.get_current_bet()
+		if max <= 0:
+			return 0.0
+		self.log.fine("Insurance purchased: $" + str(max))
+		return max
+		
 	def decide_hand(self, choices):
+		if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_playing_method():
+			pass
 		return self.advise_hand(self.strategy, choices)
 
 	def start_hand(self):
 		current_bet = self.get_starting_bet()
 		if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_counting_method():
-			if self.get_card_counting_strategy().is_using_true_count():
-				count = self.get_card_counting_strategy().get_true_count()
-			else:
-				count = self.get_card_counting_strategy().get_count()
+			count = self.get_card_counting_strategy().get_used_count()
 			count_stats = "   Count: " + str(count)
 			if count >= self.get_card_counting_strategy().get_count_threshold():
 				# If this is a multiplier,
