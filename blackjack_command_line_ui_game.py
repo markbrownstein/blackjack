@@ -1,17 +1,13 @@
 import math
 
 from common_logging import *
+from blackjack_constants import *
 from command_line_ui import CommandLineUI
 from card_counting import CardCounting
 from users import Users
 from blackjack_game_framework import BlackjackGameFramework
 
 class BlackjackCommandLineUIGame(BlackjackGameFramework):
-	NONE = "None"
-	
-	MULTIPLIER = "multiplier"
-	INCREMENT = "increment"
-	
 	def __init__(self, log, rules_section = "Blackjack"):
 		# Initialize log
 		self.log = log
@@ -22,9 +18,9 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		# Load user
 		bankroll = 500
 		starting_bet = 5
-		card_counting_strategy = self.NONE
+		card_counting_strategy = NONE
 		self.advise = False
-		self.adjustment = self.MULTIPLIER
+		self.adjustment = MULTIPLIER
 		self.user = ""
 		self.users = False
 		self.strategy = False
@@ -63,7 +59,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		BlackjackGameFramework.__init__(self, self.log, bankroll, starting_bet, rules_section)
 
 		# Load card counting strategy
-		if card_counting_strategy != self.NONE:
+		if card_counting_strategy != NONE:
 			self.load_card_counting_strategy(card_counting_strategy)
 
 	def show_hand(self, dealer_hand, show_all_cards = False):
@@ -96,8 +92,8 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 	def decide_insurance(self):
 		response = self.ui.noyes_prompt("Insurance: ")
 		if response == 'y':
-			return self.YES;
-		return self.NO
+			return YES;
+		return NO
 
 	def decide_insurance_amount(self):
 		max = self.get_current_bet() / 2
@@ -116,14 +112,14 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			advice = "Advice: " + auto[0].upper() + auto[1:] + "."
 		response = self.ui.prompt(choices, advice)
 		if response == 'h':
-			return self.HIT;
+			return HIT;
 		if response == 'd':
-			return self.DOUBLE;
+			return DOUBLE;
 		if response == 'p':
-			return self.SPLIT;
+			return SPLIT;
 		if response == 'u':
-			return self.SURRENDER;
-		return self.STAND;
+			return SURRENDER;
+		return STAND;
 
 	def end_hand(self, results):
 		# Show results
@@ -132,7 +128,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		
 		# Save user info
 		if len(self.user) > 0:
-			card_counting_strategy = self.NONE
+			card_counting_strategy = NONE
 			if self.card_counting_strategy != None:
 				card_counting_strategy = self.card_counting_strategy.get_card_counting_strategy()
 			self.users.save(self.user, self.get_bankroll(), self.get_starting_bet(), self.advise, self.adjustment, card_counting_strategy)
@@ -147,7 +143,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			else:
 				stat_line = stat_line + "Guest"
 			stat_line = stat_line + ", Cash: $" + str(self.get_bankroll()) + ", Bet: $" + str(self.get_starting_bet())
-			if self.adjustment == self.MULTIPLIER and self.get_bet_multiplier() != 1.0 or self.adjustment == self.INCREMENT and self.get_bet_multiplier() != 0.0:
+			if self.adjustment == MULTIPLIER and self.get_bet_multiplier() != 1.0 or self.adjustment == INCREMENT and self.get_bet_multiplier() != 0.0:
 				stat_line = stat_line + ", " + self.adjustment[0].upper() + self.adjustment[1:] + ": " + str(self.get_bet_multiplier())
 			print(stat_line)
 
@@ -183,7 +179,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 			else:
 				deal = False
 				if response == 'b':
-					if self.adjustment == self.MULTIPLIER:
+					if self.adjustment == MULTIPLIER:
 						min = self.get_rules().get_minimum_bet() / self.get_starting_bet()
 						max = self.get_rules().get_maximum_bet() / self.get_starting_bet()
 					else:
@@ -209,28 +205,28 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 							else:
 								self.advise = False
 						elif response == 'c':
-							card_counting_strategy = self.NONE
+							card_counting_strategy = NONE
 							if self.card_counting_strategy != None:
 								card_counting_strategy = self.card_counting_strategy.get_card_counting_strategy()
 							list = CardCounting(self.log, 1).list_card_counting_strategies()
-							if not self.NONE in list:
-								list.insert(0, self.NONE)
+							if not NONE in list:
+								list.insert(0, NONE)
 							index = self.ui.list_prompt("Choose strategy from list (current setting = " + card_counting_strategy + ")", "Error: Invalid choice!", list)
 							card_counting_strategy = list[index]
-							if card_counting_strategy == self.NONE:
+							if card_counting_strategy == NONE:
 								self.card_counting_strategy = None
 							else:
 								self.load_card_counting_strategy(card_counting_strategy)
 						elif response == 'd':
-							response = self.ui.prompt([self.MULTIPLIER, self.INCREMENT], "Adjustment (current setting = " + str(self.adjustment) + "): ")
+							response = self.ui.prompt([MULTIPLIER, INCREMENT], "Adjustment (current setting = " + str(self.adjustment) + "): ")
 							if response == 'm':
-								self.adjustment = self.MULTIPLIER
+								self.adjustment = MULTIPLIER
 								self.set_bet_multiplier(1.0)
 							else:
-								self.adjustment = self.INCREMENT
+								self.adjustment = INCREMENT
 								self.set_bet_multiplier(0.0)
 				if deal == True:
-					if self.adjustment == self.MULTIPLIER:
+					if self.adjustment == MULTIPLIER:
 						self.set_current_bet(self.get_starting_bet() * self.get_bet_multiplier())
 					else:
 						self.set_current_bet(self.get_starting_bet() + self.get_bet_multiplier())

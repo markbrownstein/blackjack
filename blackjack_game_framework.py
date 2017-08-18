@@ -1,26 +1,13 @@
 import csv
 
 from common_logging import *
+from blackjack_constants import *
 from card_counting import CardCounting
 from blackjack_game import BlackjackGame
 
 class BlackjackGameFramework(BlackjackGame):
 	STANDARD_STRATEGY_FILENAME = "standard_strategy.csv"
 
-	STAND = "stand"
-	HIT = "hit"
-	DOUBLE = "double down"
-	SPLIT = "split"
-
-	YES = "yes"
-	NO = "no"
-	
-	ADVISE_DOUBLE = 2
-	ADVISE_HIT = 1
-	ADVISE_STAND = 0
-	ADVISE_SURRENDER = -1
-	ADVISE_SPLIT = 1
-	
 	def __init__(self, log, bankroll, starting_bet, rules_section = "Blackjack"):
 		self.log = log
 		BlackjackGame.__init__(self, log, bankroll, rules_section)
@@ -49,15 +36,15 @@ class BlackjackGameFramework(BlackjackGame):
 	
 	def get_result_text(self, result):
 		result_text = ""
-		if result == self.BLACKJACK_RESULT:
+		if result == BLACKJACK_RESULT:
 			result_text = "Blackjack! Player WINS!"
-		elif result == self.WIN_RESULT:
+		elif result == WIN_RESULT:
 			result_text = "Player WINS!"
-		elif result == self.PUSH_RESULT:
+		elif result == PUSH_RESULT:
 			result_text = "PUSH!"
-		elif result == self.LOSS_RESULT:
+		elif result == LOSS_RESULT:
 			result_text = "Player LOSES!"
-		elif result == self.SURRENDER_RESULT:
+		elif result == SURRENDER_RESULT:
 			result_text = "Player SURRENDERS!"
 			
 		return result_text
@@ -89,43 +76,43 @@ class BlackjackGameFramework(BlackjackGame):
 		
 	def advise_hand(self, strategy, choices):
 		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
-		if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and self.SPLIT in choices:
+		if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and SPLIT in choices:
 			player_rank = self.calc_rank(self.get_player_hand()[0])
 			self.log.finest("Possible auto split: player rank=" + str(player_rank) + ", dealer up rank=" + str(dealer_up_rank))
 			action = strategy[200 + player_rank][dealer_up_rank - 1]
-			if action == self.ADVISE_SPLIT:
-				return self.SPLIT
+			if action == ADVISE_SPLIT:
+				return SPLIT
 		player_total = self.calc_highest_total(self.get_player_hand())
 		if player_total < 21:
 			if player_total != self.calc_lowest_total(self.get_player_hand()):
 				action = strategy[100 + player_total][dealer_up_rank - 1]
 			else:
 				if player_total < 9:
-					action = self.ADVISE_HIT
+					action = ADVISE_HIT
 				else:
 					action = strategy[player_total][dealer_up_rank - 1]
 					self.log.finest("Strategy action=" + str(action))
-			if action > self.ADVISE_STAND:
-				if action > self.ADVISE_HIT and self.DOUBLE in choices:
-					return self.DOUBLE
-				return self.HIT
-			elif action == self.ADVISE_SURRENDER:
-				if self.SURRENDER in choices:
-					return self.SURRENDER
-				return self.HIT
-		return self.STAND
+			if action > ADVISE_STAND:
+				if action > ADVISE_HIT and DOUBLE in choices:
+					return DOUBLE
+				return HIT
+			elif action == ADVISE_SURRENDER:
+				if SURRENDER in choices:
+					return SURRENDER
+				return HIT
+		return STAND
 
 	def show_hand(self, dealer_hand, show_all_cards = True):
 		pass
 		
 	def decide_insurance(self):
-		return self.NO
+		return NO
 		
 	def decide_insurance_amount(self):
 		return 0
 		
 	def decide_hand(self, choices):
-		return self.STAND
+		return STAND
 		
 	def start_hand(self):
 		pass
@@ -141,7 +128,7 @@ class BlackjackGameFramework(BlackjackGame):
 		if self.can_buy_insurance():
 			self.show_hand(False)
 			self.show_hand(True)
-			if self.decide_insurance() == self.YES:
+			if self.decide_insurance() == YES:
 				insurance = self.decide_insurance_amount()
 				if insurance > 0:
 					self.buy_insurance(insurance)
@@ -155,37 +142,37 @@ class BlackjackGameFramework(BlackjackGame):
 				# TODO: What if split is blackjack? No need to ask player.
 				# Play hand until stand, bust or double
 				while True:
-					choices = [ self.STAND, self.HIT ]
+					choices = [ STAND, HIT ]
 					if self.can_double_down(self.get_player_hand(), self.get_current_bet()) == True:
-						choices.append(self.DOUBLE)
+						choices.append(DOUBLE)
 					if self.can_split(self.get_player_hand(), self.get_current_bet()) == True:
-						choices.append(self.SPLIT)
+						choices.append(SPLIT)
 					#else:
-					#	choices.append(self.SPLIT)
+					#	choices.append(SPLIT)
 					if self.can_surrender():
-						choices.append(self.SURRENDER)
+						choices.append(SURRENDER)
 					action = self.decide_hand(choices)
-					if action == self.STAND:
+					if action == STAND:
 						break
-					if action == self.HIT:
+					if action == HIT:
 						self.deal_card_to_player()
 						if self.is_player_hand_over() == True:
 							break
 						self.show_hand(False)
 						self.show_hand(True)					
-					if action == self.DOUBLE:
+					if action == DOUBLE:
 						self.deal_card_to_player()
 						self.double_bet()
 						self.show_hand(False)
 						self.show_hand(True)					
 						break
-					if action == self.SPLIT:
+					if action == SPLIT:
 						self.split_hand()
 						if self.is_player_hand_over() == True:
 							break
 						self.show_hand(False)
 						self.show_hand(True)
-					if action == self.SURRENDER:
+					if action == SURRENDER:
 						self.surrender_hand()
 						break
 				# Mark current hand as done and go to next hand unless all are done

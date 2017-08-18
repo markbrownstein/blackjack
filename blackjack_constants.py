@@ -1,0 +1,24 @@
+BLACKJACK_RESULT = 2
+WIN_RESULT = 1
+PUSH_RESULT = 0
+LOSS_RESULT = -1
+SURRENDER_RESULT = -2
+
+ADVISE_DOUBLE = 2
+ADVISE_HIT = 1
+ADVISE_STAND = 0
+ADVISE_SURRENDER = -1
+ADVISE_SPLIT = 1
+
+STAND = "stand"
+HIT = "hit"
+DOUBLE = "double down"
+SPLIT = "split"
+SURRENDER = "surrender"
+
+YES = "yes"
+NO = "no"
+NONE = "None"
+
+MULTIPLIER = "multiplier"
+INCREMENT = "increment"

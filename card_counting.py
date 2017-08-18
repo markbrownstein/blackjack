@@ -1,4 +1,5 @@
 from common_logging import *
+from blackjack_constants import *
 from configuration import Configuration
 from event_listener import EventListener
 
@@ -17,8 +18,6 @@ class CardCounting(Configuration, EventListener):
 	TYPE = "type"
 	HIGH = "high"
 	STEP = "step"
-	INCREMENTAL = "incremental"
-	MULTIPLIER = "multiplier"
 
 	def __init__(self, log, decks, card_counting_strategy_section = "Blackjack"):
 		# Initialize variables

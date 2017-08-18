@@ -1,6 +1,7 @@
 import math
 
 from common_logging import *
+from blackjack_constants import *
 from configuration import Configuration
 from card_counting import CardCounting
 
@@ -65,10 +66,10 @@ class BlackjackAutoGame(BlackjackGameFramework):
 					try:
 						threshold = float(decision[0])
 						if count >= threshold and (decision[1].lower() == "yes" or decision[1].lower() == "true"):
-							return self.YES
+							return YES
 					except:
 						self.log.warning("Bad decision threshold: " + decision[0])
-		return self.NO
+		return NO
 
 	def decide_insurance_amount(self):
 		max = self.get_current_bet() / 2
@@ -81,7 +82,32 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		
 	def decide_hand(self, choices):
 		if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_playing_method():
-			pass
+			dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
+			if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and SPLIT in choices:
+				player_rank = self.calc_rank(self.get_player_hand()[0])
+				self.log.finest("Possible auto counting split: player rank=" + str(player_rank) + ", dealer up rank=" + str(dealer_up_rank))
+				#action = self.get_card_counting_strategy().
+				#if action == ADVISE_SPLIT:
+				#	return SPLIT
+			#player_total = self.calc_highest_total(self.get_player_hand())
+			#if player_total < 21:
+			#	if player_total != self.calc_lowest_total(self.get_player_hand()):
+			#		action = strategy[100 + player_total][dealer_up_rank - 1]
+			#	else:
+			#		if player_total < 9:
+			#			action = ADVISE_HIT
+			#		else:
+			#			action = strategy[player_total][dealer_up_rank - 1]
+			#			self.log.finest("Strategy action=" + str(action))
+			#	if action > ADVISE_STAND:
+			#		if action > ADVISE_HIT and DOUBLE in choices:
+			#			return DOUBLE
+			#		return HIT
+			#	elif action == ADVISE_SURRENDER:
+			#		if SURRENDER in choices:
+			#			return SURRENDER
+			#		return HIT
+			#return STAND
 		return self.advise_hand(self.strategy, choices)
 
 	def start_hand(self):
@@ -91,7 +117,7 @@ class BlackjackAutoGame(BlackjackGameFramework):
 			count_stats = "   Count: " + str(count)
 			if count >= self.get_card_counting_strategy().get_count_threshold():
 				# If this is a multiplier,
-				if self.get_card_counting_strategy().get_betting_type() == self.get_card_counting_strategy().MULTIPLIER:
+				if self.get_card_counting_strategy().get_betting_type() == MULTIPLIER:
 					# Calc the multiplier by dividing the count by the threshold and multiplying by the step
 					multiplier = self.get_card_counting_strategy().get_betting_step() * math.floor(count / self.get_card_counting_strategy().get_count_threshold())
 					if multiplier > self.get_card_counting_strategy().get_betting_high():
@@ -100,7 +126,7 @@ class BlackjackAutoGame(BlackjackGameFramework):
 					current_bet = self.get_starting_bet() * multiplier
 					count_stats = count_stats + ", Multiplier: " + str(multiplier)
 				# If this is a incremental,
-				elif self.get_card_counting_strategy().get_betting_type() == self.get_card_counting_strategy().INCREMENTAL:
+				elif self.get_card_counting_strategy().get_betting_type() == INCREMENT:
 					# Calc the increment by subtracting the count by the threshold plus one and multiplying by the step
 					increment = self.get_card_counting_strategy().get_betting_step() * math.floor(count - self.get_card_counting_strategy().get_count_threshold() + 1.0)
 					if increment > self.get_card_counting_strategy().get_betting_high():
