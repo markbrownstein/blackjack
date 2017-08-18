@@ -36,6 +36,26 @@ class CardCounting(Configuration, EventListener):
 		# Reset count
 		self.reset_count()
 		
+	def parse_range(self, s):
+		n_array = []
+		
+		try:
+			index = s.find('-')
+			if index >= 0:
+				first = int(s[:index])
+				second = int(s[index + 1:])
+				if first >= second:
+					raise Exception("Range backwards")
+				while first <= second:
+					n_array.append(str(first))
+					first = first + 1
+			else:
+				n_array.append(s)
+		except Exception as e:
+			self.log.warning("Exception caught reading card counting playing method:" + str(e))
+			
+		return n_array
+		
 	def load_card_counting_strategy(self, card_counting_strategy_section):
 		# Load card counting strategy section
 		self.load_section(card_counting_strategy_section)
@@ -87,18 +107,7 @@ class CardCounting(Configuration, EventListener):
 							if first != left_over:
 								raise Exception("Pairs don't match")
 							comma = True
-						n_array = []
-						index = left_over.find('-')
-						if index >= 0:
-							first = int(left_over[:index])
-							second = int(left_over[index + 1:])
-							if first >= second:
-								raise Exception("Range backwards")
-							while first <= second:
-								n_array.append(str(first))
-								first = first + 1
-						else:
-							n_array.append(left_over)
+						n_array = self.parse_range(left_over)
 						for n in n_array:
 							if comma:
 								self.playing_method_map[prefix + n + ',' + prefix + n] = s_array[1:]

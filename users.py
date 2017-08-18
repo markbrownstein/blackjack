@@ -8,6 +8,7 @@ class Users(Configuration):
 	BANKROLL = "bankroll"
 	STARTING_BET = "starting_bet"
 	ADVISE = "advise"
+	ADJUSTMENT = "adjustment"
 	CARD_COUNTING_STRATEGY = "card_counting_strategy"
 	
 	def __init__(self, log):
@@ -22,6 +23,9 @@ class Users(Configuration):
 
 	def get_advise(self):
 		return self.read_boolean(self.ADVISE, False)
+
+	def get_adjustment(self):
+		return self.read_string(self.ADJUSTMENT, "Multiplier")
 
 	def get_card_counting_strategy(self):
 		return self.read_string(self.CARD_COUNTING_STRATEGY, False)
@@ -39,7 +43,7 @@ class Users(Configuration):
 			has = True
 		return has
 
-	def save(self, user, bankroll, starting_bet, advise, card_counting_strategy):
+	def save(self, user, bankroll, starting_bet, advise, adjustment, card_counting_strategy):
 		if not user in self.config:
 			self.config[user] = {}
 
@@ -47,15 +51,16 @@ class Users(Configuration):
 		self.config[user][self.BANKROLL] = str(bankroll)
 		self.config[user][self.STARTING_BET] = str(starting_bet)
 		self.config[user][self.ADVISE] = str(advise)
+		self.config[user][self.ADJUSTMENT] = str(adjustment)
 		self.config[user][self.CARD_COUNTING_STRATEGY] = str(card_counting_strategy)
 
 		# Save data to file
 		with open(self.FILENAME, 'w') as configfile:
 			self.config.write(configfile)
 
-	def save_new_user(self, user, password, bankroll, starting_bet, advise, card_counting_strategy):
+	def save_new_user(self, user, password, bankroll, starting_bet, advise, adjustment, card_counting_strategy):
 		if not user in self.config:
 			self.config[user] = {}
 		self.config[user][self.PASSWORD] = password
-		self.save(user, bankroll, starting_bet, advise, card_counting_strategy)
+		self.save(user, bankroll, starting_bet, advise, adjustment, card_counting_strategy)
 	
