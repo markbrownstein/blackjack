@@ -81,33 +81,6 @@ class BlackjackAutoGame(BlackjackGameFramework):
 		return max
 		
 	def decide_hand(self, choices):
-		if self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_playing_method():
-			dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
-			if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and SPLIT in choices:
-				player_rank = self.calc_rank(self.get_player_hand()[0])
-				self.log.finest("Possible auto counting split: player rank=" + str(player_rank) + ", dealer up rank=" + str(dealer_up_rank))
-				#action = self.get_card_counting_strategy().
-				#if action == ADVISE_SPLIT:
-				#	return SPLIT
-			#player_total = self.calc_highest_total(self.get_player_hand())
-			#if player_total < 21:
-			#	if player_total != self.calc_lowest_total(self.get_player_hand()):
-			#		action = strategy[100 + player_total][dealer_up_rank - 1]
-			#	else:
-			#		if player_total < 9:
-			#			action = ADVISE_HIT
-			#		else:
-			#			action = strategy[player_total][dealer_up_rank - 1]
-			#			self.log.finest("Strategy action=" + str(action))
-			#	if action > ADVISE_STAND:
-			#		if action > ADVISE_HIT and DOUBLE in choices:
-			#			return DOUBLE
-			#		return HIT
-			#	elif action == ADVISE_SURRENDER:
-			#		if SURRENDER in choices:
-			#			return SURRENDER
-			#		return HIT
-			#return STAND
 		return self.advise_hand(self.strategy, choices)
 
 	def start_hand(self):

@@ -6,6 +6,7 @@ from command_line_ui import CommandLineUI
 from card_counting import CardCounting
 from users import Users
 from blackjack_game_framework import BlackjackGameFramework
+from test_shoe import TestShoe # Only for testing
 
 class BlackjackCommandLineUIGame(BlackjackGameFramework):
 	def __init__(self, log, rules_section = "Blackjack"):
@@ -61,6 +62,8 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		# Load card counting strategy
 		if card_counting_strategy != NONE:
 			self.load_card_counting_strategy(card_counting_strategy)
+			
+		self.shoe = TestShoe(log, self.rules.get_decks()) # Only for testing
 
 	def show_hand(self, dealer_hand, show_all_cards = False):
 		if dealer_hand == True:
@@ -155,7 +158,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 					count = self.get_card_counting_strategy().get_used_count()
 					if count >= self.get_card_counting_strategy().get_count_threshold():
 						# If this is a multiplier,
-						if self.get_card_counting_strategy().get_betting_type() == self.get_card_counting_strategy().MULTIPLIER:
+						if self.get_card_counting_strategy().get_betting_type() == MULTIPLIER:
 							# Calc the multiplier by dividing the count by the threshold and multiplying by the step
 							multiplier = self.get_card_counting_strategy().get_betting_step() * math.floor(count / self.get_card_counting_strategy().get_count_threshold())
 							if multiplier > self.get_card_counting_strategy().get_betting_high():
@@ -163,7 +166,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 							# Apply the multiplier
 							stat_line = stat_line + ", Multiplier: " + str(multiplier)
 						# If this is a incremental,
-						elif self.get_card_counting_strategy().get_betting_type() == self.get_card_counting_strategy().INCREMENTAL:
+						elif self.get_card_counting_strategy().get_betting_type() == INCREMENT:
 							# Calc the increment by subtracting the count by the threshold plus one and multiplying by the step
 							increment = self.get_card_counting_strategy().get_betting_step() * math.floor(count - self.get_card_counting_strategy().get_count_threshold() + 1.0)
 							if increment > self.get_card_counting_strategy().get_betting_high():

@@ -74,19 +74,59 @@ class BlackjackGameFramework(BlackjackGame):
 		self.set_event_listener(self.card_counting_strategy)
 		self.log.finer("... finished loading card counting strategy: " + card_counting_strategy)
 		
+
+	def parse_decision(self, key, dealer_up_rank):
+		# Index 0 is dealer up card (?, # or #-#), index 1 is count, index 2 is what to do. Ex: 14-16_?_+10_stand
+		decision_array = self.get_card_counting_strategy().get_decision(key)
+		if decision_array != None:
+			self.log.fine("Card counting playing strategy found: " + key + ' ' + str(decision_array))
+			if len(decision_array) == 3:
+				if decision_array[0] == '?' or dealer_up_rank in self.get_card_counting_strategy().parse_range(decision_array[0]):
+					try:
+						if self.get_card_counting_strategy().used_count() >= int(decision_array[1]):
+							self.log.fine("Card counting playing strategy used: " + key + ' ' + str(decision_array))
+							return decision_array[2]
+					except:
+						pass
+		return None
+
 	def advise_hand(self, strategy, choices):
+		has_playing_method = self.get_card_counting_strategy() != None and self.get_card_counting_strategy().has_playing_method()
 		dealer_up_rank = self.calc_rank(self.get_dealer_hand()[1])
 		if self.get_player_hand()[0][0] == self.get_player_hand()[1][0] and SPLIT in choices:
 			player_rank = self.calc_rank(self.get_player_hand()[0])
 			self.log.finest("Possible auto split: player rank=" + str(player_rank) + ", dealer up rank=" + str(dealer_up_rank))
+			if has_playing_method:
+				# See if the pair is in the playing strategy
+				key = str(player_rank) + ',' + str(player_rank)
+				decision = self.parse_decision(key, dealer_up_rank)
+				if decision != None:
+					return decision
 			action = strategy[200 + player_rank][dealer_up_rank - 1]
 			if action == ADVISE_SPLIT:
 				return SPLIT
 		player_total = self.calc_highest_total(self.get_player_hand())
 		if player_total < 21:
 			if player_total != self.calc_lowest_total(self.get_player_hand()):
+				# See if the soft total is in the playing strategy
+				key = "soft" + str(player_total)
+				decision = self.parse_decision(key, dealer_up_rank)
+				if decision != None:
+					return decision				
 				action = strategy[100 + player_total][dealer_up_rank - 1]
 			else:
+				# See if the hard total is in the playing strategy
+				key = "hard" + str(player_total)
+				decision = self.parse_decision(key, dealer_up_rank)
+				if decision != None:
+					return decision				
+				# See if the total is in the playing strategy
+				key = str(player_total)
+				decision = self.parse_decision(key, dealer_up_rank)
+				if decision != None:
+					return decision				
+				
+				# Continue with normal playing strategyu
 				if player_total < 9:
 					action = ADVISE_HIT
 				else:

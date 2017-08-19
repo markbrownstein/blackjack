@@ -1,7 +1,6 @@
 import math
 
 from common_logging import *
-#from configuration import Configuration
 from test_shoe import TestShoe
 
 from blackjack_auto_game import BlackjackAutoGame
