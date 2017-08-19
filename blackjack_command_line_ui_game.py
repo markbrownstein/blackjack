@@ -6,7 +6,7 @@ from command_line_ui import CommandLineUI
 from card_counting import CardCounting
 from users import Users
 from blackjack_game_framework import BlackjackGameFramework
-from test_shoe import TestShoe # Only for testing
+#from test_shoe import TestShoe # Only for testing
 
 class BlackjackCommandLineUIGame(BlackjackGameFramework):
 	def __init__(self, log, rules_section = "Blackjack"):
@@ -63,7 +63,7 @@ class BlackjackCommandLineUIGame(BlackjackGameFramework):
 		if card_counting_strategy != NONE:
 			self.load_card_counting_strategy(card_counting_strategy)
 			
-		self.shoe = TestShoe(log, self.rules.get_decks()) # Only for testing
+		#self.shoe = TestShoe(log, self.rules.get_decks()) # Only for testing
 
 	def show_hand(self, dealer_hand, show_all_cards = False):
 		if dealer_hand == True:
